@@ -1,5 +1,5 @@
 # Codex 会话同步工具
-中文说明: [README.zh-CN.md](README.zh-CN.md)
+
 这是一个本地工具，用来同步 Codex 在不同模型供应商 provider 下的历史会话可见性。
 
 工具默认只做预览，不会写入数据。只有在 Web UI 中勾选确认并点击“执行写入”，或在命令行中显式追加 `--apply`，才会修改 Codex 会话文件和 SQLite 索引。
