@@ -31,8 +31,8 @@ Codex Session Sync 的目标是把这些 provider 下的原始会话取并集，
 
 在当前目录运行：
 
-```powershell
-.\dist\CodexSessionSync.exe
+```python
+python src\m_webui.py
 ```
 
 程序会启动本地服务，并自动打开浏览器页面。服务只监听本机 `127.0.0.1`。
