@@ -4,10 +4,21 @@
 
 Local utility for synchronizing Codex conversation visibility across configured model providers.
 
+## Background
+
+This tool was created for a common workflow with `ccswitch`: after switching Codex between multiple model providers, each provider's conversation history can appear separated from the others. That makes it inconvenient to move between providers while keeping the same project context visible.
+
+Codex Session Sync solves that by creating provider-specific mirror sessions, so all configured providers can see the same conversation set. The implementation was also informed by the session-management tooling in `ccswitch`.
+
+## UI Preview
+
+![Codex Session Sync Web UI](assets/ui-screenshot.png)
+
 ## Files
 
 - `src/m.py`: core CLI script.
 - `src/m_webui.py`: local Web UI wrapper.
+- `assets/ui-screenshot.png`: Web UI screenshot used by this README.
 - `dist/CodexSessionSync.exe`: packaged Windows executable.
 - `CodexSessionSync.spec`: PyInstaller build spec.
 - `build/`: PyInstaller build cache, safe to regenerate.

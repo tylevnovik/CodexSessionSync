@@ -1,13 +1,26 @@
 # Codex 会话同步工具
 
+English README: [README.md](README.md)
+
 这是一个本地工具，用来同步 Codex 在不同模型供应商 provider 下的历史会话可见性。
 
+## 背景
+
+这个工具主要是为 `ccswitch` 的多供应商切换场景开发的。使用 `ccswitch` 在 Codex 的多个供应商之间来回切换时，不同 provider 下的会话历史会相互独立，导致同一个项目上下文在切换供应商后不可见，使用起来很割裂。
+
+Codex Session Sync 的目标是把这些 provider 下的原始会话取并集，并为缺失会话的 provider 创建镜像会话，让所有已配置 provider 都能看到同一批会话。工具实现也参考了 `ccswitch` 里的会话管理工具思路。
+
 工具默认只做预览，不会写入数据。只有在 Web UI 中勾选确认并点击“执行写入”，或在命令行中显式追加 `--apply`，才会修改 Codex 会话文件和 SQLite 索引。
+
+## UI 截图
+
+![Codex 会话同步工具 Web UI](assets/ui-screenshot.png)
 
 ## 目录结构
 
 - `src/m.py`：核心命令行脚本。
 - `src/m_webui.py`：本地 Web UI 包装入口。
+- `assets/ui-screenshot.png`：README 中使用的 Web UI 截图。
 - `dist/CodexSessionSync.exe`：已经打包好的 Windows 可执行文件。
 - `CodexSessionSync.spec`：PyInstaller 打包配置。
 - `build/`：PyInstaller 构建缓存，可以删除后重新生成。
