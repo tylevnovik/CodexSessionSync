@@ -1,5 +1,7 @@
 # Codex Session Sync
 
+中文说明: [README.zh-CN.md](README.zh-CN.md)
+
 Local utility for synchronizing Codex conversation visibility across configured model providers.
 
 ## Files
