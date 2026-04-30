@@ -27,8 +27,8 @@ Codex Session Sync solves that by creating provider-specific mirror sessions, so
 
 Run:
 
-```powershell
-.\dist\CodexSessionSync.exe
+```python
+python src\m_webui.py
 ```
 
 The executable opens a local browser page on `127.0.0.1`. The default action is preview only. Use a backup directory and explicit apply confirmation before writing changes.
