@@ -1,0 +1,21 @@
+## Build outputs
+bin/
+obj/
+dist/
+dist_*/
+debug.log
+
+## IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Python (legacy)
+__pycache__/
+*.pyc
