@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CodexSessionSync.WinUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "CodexSessionSync.WinUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

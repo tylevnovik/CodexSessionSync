@@ -18,35 +18,47 @@ CodexSessionSync.Core/        核心同步引擎（纯类库，无 GUI 依赖）
 CodexSessionSync.Wpf/         WPF 桌面界面
 CodexSessionSync.WinForms/    WinForms 桌面界面
 CodexSessionSync.Avalonia/    Avalonia 跨平台桌面界面
+CodexSessionSync.WinUI/       WinUI 3 桌面界面
 CodexSessionSync.Tui/         终端交互界面（Spectre.Console）
-dist/                         发布输出目录（各平台单文件 exe）
-publish.ps1                   一键构建发布脚本
+dist/                         发布输出目录
+release/                      GitHub Release 资产输出目录（由脚本生成）
+publish-all.ps1               一键构建发布脚本
 ```
 
 ## 构建与发布
 
 ```powershell
-# 构建所有项目
-dotnet build
-
-# 发布为 self-contained 单文件 exe（推荐）
-.\publish.ps1
+# 构建并发布所有 release 产物
+.\publish-all.ps1
 ```
 
-发布后的文件在 `dist\` 目录下：
+脚本会先把各项目发布到 `dist\`，再把可分发资产写入 `release\`。`release\` 是 GitHub Release 上传目录，不提交到仓库。
+
+`dist\` 目录中的主要输出：
 
 | 项目 | 输出 |
 |------|------|
 | `dist\CodexSessionSync.Wpf\CodexSessionSync.Wpf.exe` | WPF 界面 |
-| `dist\CodexSessionSync.WinForms\CodexSessionSync.WinForms.exe` | WinForms 界面 |
-| `dist\CodexSessionSync.Avalonia\CodexSessionSync.Avalonia.exe` | Avalonia 界面 |
-| `dist\CodexSessionSync.Tui\CodexSessionSync.Tui.exe` | 终端界面 |
+| `dist\CodexSessionSync.WinForms-aot\CodexSessionSync.WinForms.exe` | WinForms 界面 |
+| `dist\CodexSessionSync.Avalonia-aot\CodexSessionSync.Avalonia.exe` | Avalonia 界面 |
+| `dist\CodexSessionSync.Tui-aot\CodexSessionSync.Tui.exe` | 终端界面 |
+| `dist\CodexSessionSync.WinUI-aot\CodexSessionSync.WinUI.exe` | WinUI 3 界面 |
 
-所有 exe 均为 self-contained 单文件，无需安装 .NET 运行时即可运行。
+GitHub Release 资产：
+
+| 资产 | 说明 |
+|------|------|
+| `release\CodexSessionSync.Avalonia-aot.zip` | Avalonia self-contained AOT 单文件 |
+| `release\CodexSessionSync.Tui-aot.zip` | TUI self-contained AOT 单文件 |
+| `release\CodexSessionSync.WinForms-aot.zip` | WinForms self-contained AOT 单文件 |
+| `release\CodexSessionSync.WinUI-aot.zip` | WinUI 3 self-contained AOT 文件夹包 |
+| `release\CodexSessionSync.Wpf.exe` | WPF self-contained 单文件 |
+
+WinForms、Avalonia、TUI 版本为 self-contained AOT 单文件；WinUI 3 版本由于 Windows App SDK 运行时限制，采用 self-contained AOT 文件夹发布；WPF 版本为 self-contained 单文件但不支持 Native AOT。
 
 ## 使用方法
 
-### GUI 版本（WPF / WinForms / Avalonia）
+### GUI 版本（WPF / WinForms / Avalonia / WinUI）
 
 1. 打开程序，界面自动填入默认 Codex Home 路径。
 2. 选择同步模式。

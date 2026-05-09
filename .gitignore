@@ -3,6 +3,7 @@ bin/
 obj/
 dist/
 dist_*/
+release/
 debug.log
 
 ## IDE
