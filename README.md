@@ -11,10 +11,10 @@ Codex Session Sync 是一个本地会话同步工具，用来把 OpenAI Codex / 
 | 版本 | 推荐场景 | 发布形态 | 说明 |
 |------|----------|----------|------|
 | WinUI 3 | 想要最接近 Windows 11 的原生体验 | `CodexSessionSync.WinUI-aot.zip` | Windows App SDK + Acrylic + 深浅色切换。必须完整解压后运行，不是单 exe。 |
-| Avalonia | 想要现代 Fluent 风格和较小 AOT 包 | `CodexSessionSync.Avalonia-aot.zip` | Acrylic 背景、卡片布局、pill 模式选择器。当前发布为 Windows x64 单文件 AOT。 |
-| WinForms | 想要最朴素、直接、兼容性好的 GUI | `CodexSessionSync.WinForms-aot.zip` | 轻量表单界面，self-contained AOT 单文件，适合备用和排错。 |
-| WPF | 想要传统 Windows 桌面体验 | `CodexSessionSync.Wpf.exe` | self-contained 单文件，但 WPF 不支持 Native AOT，体积最大。 |
-| TUI | 想在终端或脚本里跑 | `CodexSessionSync.Tui-aot.zip` | Spectre.Console 交互界面，也支持 `--preview` / `--apply`。 |
+| Avalonia | 想要接近 WinUI 3 的现代界面和较小 AOT 包 | `CodexSessionSync.Avalonia-aot.zip` | Acrylic 深色背景、WinUI-like 卡片布局、pill 模式选择器。Windows x64 self-contained Native AOT，需保留 zip 内 native DLL。 |
+| WinForms | 想要最朴素、直接、兼容性好的 GUI | `CodexSessionSync.WinForms-aot.zip` | 紧凑管理工具窗，self-contained AOT，需保留 zip 内 SQLite native DLL。 |
+| WPF | 想要接近 WinUI 3 但保持单 exe | `CodexSessionSync.Wpf.exe` | WinUI-like 暗色 Fluent 工具界面，self-contained 单文件，但 WPF 不支持 Native AOT，体积最大。 |
+| TUI | 想在终端或脚本里跑 | `CodexSessionSync.Tui-aot.zip` | Spectre.Console 交互界面，支持交互模式和脚本参数。 |
 
 WinUI 3 包里的文件都要保留，尤其是 `.pri`、`.mui`、WinUI/XAML/Windows App SDK 运行时 DLL。它的 “self-contained” 含义是 **不要求目标机器预装 Windows App Runtime**，不是 “只有一个 exe”。
 
@@ -38,17 +38,17 @@ WinUI 3 是最偏“原生 Windows 应用”的版本。它使用 Windows App SD
 
 ### Avalonia
 
-Avalonia 版本是目前最完整的现代 UI 版本之一，使用 Fluent 主题、Acrylic 背景、卡片式信息区和 pill 风格的模式选择器。它有跨平台潜力，但当前 release 只发布 Windows x64 self-contained Native AOT。
+Avalonia 版本现在按 WinUI 3 的信息结构重做：顶部标题和状态、路径卡片、模式卡片、操作区、独立滚动的运行输出区都在同一套深色 Fluent/Acrylic 视觉里。它有跨平台潜力，但当前 release 只发布 Windows x64 self-contained Native AOT。
 
 如果想要“现代一点、文件又比 WPF 小”的 GUI，优先选 Avalonia。
 
 ### WinForms
 
-WinForms 版本是轻量 fallback：控件朴素，布局直接，依赖少，self-contained AOT 单文件。它不追求视觉效果，但启动和排错路径简单，适合在复杂桌面运行时出问题时备用。
+WinForms 版本是轻量 fallback：控件朴素，布局直接，依赖少，self-contained AOT。它不追求视觉效果，但现在按管理工具窗整理了模式、参数和日志区域，适合在复杂桌面运行时出问题时备用。
 
 ### WPF
 
-WPF 版本是传统 Windows 桌面界面，带卡片式模式选择、深色输出区和异步执行。它发布为 self-contained 单文件，不需要安装 .NET 运行时，但 WPF 当前不能 Native AOT，所以体积明显更大。
+WPF 版本是 WinUI-like 的暗色 Fluent 工具界面，布局和 WinUI 3 版本保持接近，包含参数卡片、模式卡片、操作区和独立滚动的运行输出区。它发布为 self-contained 单文件，不需要安装 .NET 运行时，但 WPF 当前不能 Native AOT，所以体积明显更大。
 
 ### TUI
 
@@ -57,9 +57,21 @@ TUI 版本基于 Spectre.Console，适合终端环境、远程桌面、脚本化
 ```bash
 CodexSessionSync.Tui.exe --preview
 CodexSessionSync.Tui.exe --apply
+CodexSessionSync.Tui.exe --preview --mode openai --source openai
+CodexSessionSync.Tui.exe --apply --mode migrate --target openai --backup-dir C:\backup
 ```
 
-CLI 模式默认执行全供应商互同步。
+CLI 模式默认执行全供应商互同步。交互模式预览完成后可以直接用同一组参数执行写入，不需要重新走一遍流程。
+
+可选参数：
+
+| 参数 | 说明 |
+|------|------|
+| `--mode mutual|openai|migrate` | 选择同步模式 |
+| `--codex-home <path>` | 指定 Codex Home |
+| `--backup-dir <path>` | 写入前备份目录 |
+| `--source <provider>` | OpenAI 同步到全部模式的源 provider |
+| `--target <provider>` | 单目标迁移模式的目标 provider |
 
 ## 使用方法
 
@@ -123,9 +135,9 @@ CLI 模式默认执行全供应商互同步。
 
 | 项目 | 框架 | Native AOT | 单文件 | 发布备注 |
 |------|------|------------|--------|----------|
-| `CodexSessionSync.Tui` | .NET 10 + Spectre.Console | 是 | 是 | zip 内主要是单个 exe。 |
-| `CodexSessionSync.WinForms` | Windows Forms | 是 | 是 | 使用 partial trim，保留 WinForms 运行所需反射路径。 |
-| `CodexSessionSync.Avalonia` | Avalonia UI 11 | 是 | 是 | 使用 Fluent 主题和 compiled bindings。 |
+| `CodexSessionSync.Tui` | .NET 10 + Spectre.Console | 是 | 近似 | zip 内包含 exe 和 SQLite native DLL。 |
+| `CodexSessionSync.WinForms` | Windows Forms | 是 | 近似 | 使用 partial trim，zip 内包含 exe 和 SQLite native DLL。 |
+| `CodexSessionSync.Avalonia` | Avalonia UI 11 | 是 | 否 | 使用 Fluent 主题和 compiled bindings，Skia/SQLite native DLL 需要 side-by-side 保留。 |
 | `CodexSessionSync.WinUI` | WinUI 3 / Windows App SDK | 是 | 否 | self-contained 文件夹包，必须完整解压。 |
 | `CodexSessionSync.Wpf` | WPF | 否 | 是 | self-contained 单文件，但体积大。 |
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodexSessionSync.Core;
 
@@ -27,8 +28,9 @@ public class MainForm : Form
     public MainForm()
     {
         Text = "Codex 会话同步工具";
-        Size = new System.Drawing.Size(960, 720);
-        MinimumSize = new System.Drawing.Size(640, 480);
+        AutoScaleMode = AutoScaleMode.Dpi;
+        Size = new System.Drawing.Size(1120, 780);
+        MinimumSize = new System.Drawing.Size(900, 640);
         StartPosition = FormStartPosition.CenterScreen;
         InitializeComponents();
         ResetDefaults();
@@ -36,134 +38,283 @@ public class MainForm : Form
 
     private void InitializeComponents()
     {
-        var font = new System.Drawing.Font("Microsoft YaHei", 9F);
+        var font = new System.Drawing.Font("Microsoft YaHei UI", 9F);
         Font = font;
-        Padding = new Padding(16);
+        BackColor = System.Drawing.SystemColors.Control;
+        Padding = new Padding(12);
 
         var root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 5,
-            AutoSize = true,
-            AutoSizeMode = AutoSizeMode.GrowAndShrink
+            RowCount = 3
         };
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         Controls.Add(root);
 
-        // === Header ===
-        var headerPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true };
+        var headerPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = new Padding(0, 0, 0, 8),
+            AutoSize = true
+        };
         headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140F));
+        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
-        var titlePanel = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, AutoSize = true, WrapContents = true };
-        titlePanel.Controls.Add(new Label { Text = "Codex 会话同步工具", Font = new System.Drawing.Font("Microsoft YaHei", 14F, System.Drawing.FontStyle.Bold), AutoSize = true });
-        titlePanel.Controls.Add(new Label { Text = "默认预览，不会写入；勾选确认后点击执行写入才会修改文件和 SQLite。", ForeColor = System.Drawing.Color.Gray, AutoSize = true, MaximumSize = new System.Drawing.Size(700, 0) });
+        var titlePanel = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, AutoSize = true };
+        titlePanel.Controls.Add(new Label
+        {
+            Text = "Codex 会话同步工具",
+            Font = new System.Drawing.Font("Microsoft YaHei UI", 14F, System.Drawing.FontStyle.Bold),
+            ForeColor = System.Drawing.SystemColors.ControlText,
+            AutoSize = true
+        }, 0, 0);
+        titlePanel.Controls.Add(new Label
+        {
+            Text = "先预览同步计划，再确认写入 JSONL 和 SQLite 索引。",
+            ForeColor = System.Drawing.SystemColors.GrayText,
+            AutoSize = true,
+            Margin = new Padding(0, 4, 0, 0)
+        }, 0, 1);
         headerPanel.Controls.Add(titlePanel, 0, 0);
 
         _statusLabel = new Label
         {
             Text = "准备就绪",
-            BorderStyle = BorderStyle.FixedSingle,
-            TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-            BackColor = System.Drawing.Color.White,
-            Dock = DockStyle.Fill,
-            Margin = new Padding(8)
+            TextAlign = System.Drawing.ContentAlignment.MiddleRight,
+            ForeColor = System.Drawing.SystemColors.GrayText,
+            Font = new System.Drawing.Font(font, System.Drawing.FontStyle.Bold),
+            AutoSize = true,
+            Anchor = AnchorStyles.Right,
+            Margin = new Padding(12, 8, 0, 0)
         };
         headerPanel.Controls.Add(_statusLabel, 1, 0);
         root.Controls.Add(headerPanel, 0, 0);
 
-        // === Config ===
-        var configPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, Padding = new Padding(4), AutoSize = true };
+        var body = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 1
+        };
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 270F));
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        root.Controls.Add(body, 0, 1);
+
+        var modeGroup = new GroupBox
+        {
+            Text = "同步模式",
+            Dock = DockStyle.Fill,
+            Padding = new Padding(10)
+        };
+        var modePanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            ColumnCount = 1,
+            RowCount = 7,
+            AutoSize = true
+        };
+        _modeMutual = CreateModeButton("全供应商互同步", true);
+        _modeOpenAi = CreateModeButton("OpenAI 同步到全部", false);
+        _modeMigrate = CreateModeButton("单目标迁移", false);
+        _modeMutual.CheckedChanged += (_, __) => UpdateModeButtonVisuals();
+        _modeOpenAi.CheckedChanged += (_, __) => UpdateModeButtonVisuals();
+        _modeMigrate.CheckedChanged += (_, __) => UpdateModeButtonVisuals();
+        modePanel.Controls.Add(_modeMutual, 0, 0);
+        modePanel.Controls.Add(CreateHelpLabel("所有 provider 互相补齐镜像会话。"), 0, 1);
+        modePanel.Controls.Add(_modeOpenAi, 0, 2);
+        modePanel.Controls.Add(CreateHelpLabel("以源 provider 为起点创建镜像。"), 0, 3);
+        modePanel.Controls.Add(_modeMigrate, 0, 4);
+        modePanel.Controls.Add(CreateHelpLabel("把历史会话归并到目标 provider。"), 0, 5);
+        modePanel.Controls.Add(CreateHelpLabel("预览不会写入；执行写入前需要勾选确认。"), 0, 6);
+        modeGroup.Controls.Add(modePanel);
+        body.Controls.Add(modeGroup, 0, 0);
+
+        var right = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = new Padding(12, 0, 0, 0) };
+        right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        right.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        body.Controls.Add(right, 1, 0);
+
+        var configGroup = new GroupBox
+        {
+            Text = "路径与 provider",
+            Dock = DockStyle.Top,
+            Padding = new Padding(10),
+            AutoSize = true
+        };
+        var configPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            ColumnCount = 2,
+            RowCount = 2,
+            AutoSize = true
+        };
+        configPanel.ColumnCount = 2;
         configPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
         configPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        configPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        configPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-        var homePanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, AutoSize = true };
-        homePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        homePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        homePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        homePanel.Controls.Add(new Label { Text = "Codex Home", Font = new System.Drawing.Font(font, System.Drawing.FontStyle.Bold), AutoSize = true }, 0, 0);
-        _codexHomeBox = new TextBox { Dock = DockStyle.Top, Anchor = AnchorStyles.Left | AnchorStyles.Right };
-        homePanel.Controls.Add(_codexHomeBox, 0, 1);
-        homePanel.Controls.Add(new Label { Text = "默认读取 CODEX_HOME 或当前用户的 .codex。", ForeColor = System.Drawing.Color.Gray, AutoSize = true }, 0, 2);
-        configPanel.Controls.Add(homePanel, 0, 0);
+        _codexHomeBox = CreateTextBox();
+        _backupDirBox = CreateTextBox();
+        _sourceProviderBox = CreateTextBox("openai");
+        _targetProviderBox = CreateTextBox("openai");
 
-        var backupPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, AutoSize = true };
-        backupPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        backupPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        backupPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        backupPanel.Controls.Add(new Label { Text = "备份目录", Font = new System.Drawing.Font(font, System.Drawing.FontStyle.Bold), AutoSize = true }, 0, 0);
-        _backupDirBox = new TextBox { Dock = DockStyle.Top, Anchor = AnchorStyles.Left | AnchorStyles.Right };
-        backupPanel.Controls.Add(_backupDirBox, 0, 1);
-        backupPanel.Controls.Add(new Label { Text = "执行写入时建议填写，例如桌面上的 codex-backup。", ForeColor = System.Drawing.Color.Gray, AutoSize = true }, 0, 2);
-        configPanel.Controls.Add(backupPanel, 1, 0);
-        root.Controls.Add(configPanel, 0, 1);
+        configPanel.Controls.Add(CreateField("Codex Home", _codexHomeBox, "默认读取 CODEX_HOME 或当前用户的 .codex。"), 0, 0);
+        configPanel.Controls.Add(CreateField("备份目录", _backupDirBox, "写入时建议填写，例如桌面上的 codex-backup。"), 1, 0);
+        configPanel.Controls.Add(CreateField("源 provider", _sourceProviderBox, null), 0, 1);
+        configPanel.Controls.Add(CreateField("目标 provider", _targetProviderBox, null), 1, 1);
+        configGroup.Controls.Add(configPanel);
+        right.Controls.Add(configGroup, 0, 0);
 
-        // === Mode ===
-        var modePanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, AutoSize = true, Padding = new Padding(4) };
-        modePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        modePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        modePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        modePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        modePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        modePanel.Controls.Add(new Label { Text = "同步模式", Font = new System.Drawing.Font(font, System.Drawing.FontStyle.Bold), AutoSize = true }, 0, 0);
-
-        var modeRow = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true, WrapContents = true };
-        _modeMutual = new RadioButton { Text = "全供应商互同步", Checked = true, AutoSize = true };
-        _modeOpenAi = new RadioButton { Text = "OpenAI 同步到全部", AutoSize = true };
-        _modeMigrate = new RadioButton { Text = "单目标迁移", AutoSize = true };
-        modeRow.Controls.Add(_modeMutual);
-        modeRow.Controls.Add(_modeOpenAi);
-        modeRow.Controls.Add(_modeMigrate);
-        modePanel.Controls.Add(modeRow, 0, 1);
-
-        var providerRow = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true, WrapContents = true };
-        providerRow.Controls.Add(new Label { Text = "源 provider:", AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleCenter });
-        _sourceProviderBox = new TextBox { Text = "openai", Width = 120 };
-        providerRow.Controls.Add(_sourceProviderBox);
-        providerRow.Controls.Add(new Label { Text = "  目标 provider:", AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleCenter });
-        _targetProviderBox = new TextBox { Text = "openai", Width = 120 };
-        providerRow.Controls.Add(_targetProviderBox);
-        modePanel.Controls.Add(providerRow, 0, 2);
-
-        var actionRow = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true, WrapContents = true };
-        _previewBtn = new Button { Text = "预览", AutoSize = true, MinimumSize = new System.Drawing.Size(80, 32), BackColor = System.Drawing.Color.FromArgb(52, 64, 84), ForeColor = System.Drawing.Color.White, FlatStyle = FlatStyle.Flat };
-        _applyBtn = new Button { Text = "执行写入", AutoSize = true, MinimumSize = new System.Drawing.Size(90, 32), BackColor = System.Drawing.Color.FromArgb(180, 35, 24), ForeColor = System.Drawing.Color.White, FlatStyle = FlatStyle.Flat };
-        _defaultsBtn = new Button { Text = "恢复默认路径", AutoSize = true, MinimumSize = new System.Drawing.Size(100, 32), BackColor = System.Drawing.Color.FromArgb(71, 84, 103), ForeColor = System.Drawing.Color.White, FlatStyle = FlatStyle.Flat };
-        _confirmCheck = new CheckBox { Text = "我已备份或确认可以写入", AutoSize = true };
-        actionRow.Controls.Add(_previewBtn);
-        actionRow.Controls.Add(_applyBtn);
-        actionRow.Controls.Add(_defaultsBtn);
-        actionRow.Controls.Add(_confirmCheck);
-        modePanel.Controls.Add(actionRow, 0, 3);
-
-        _previewBtn.Click += (_, __) => RunSync(false);
-        _applyBtn.Click += (_, __) => RunSync(true);
-        _defaultsBtn.Click += (_, __) => ResetDefaults();
-        root.Controls.Add(modePanel, 0, 2);
-
-        // === Output ===
-        var outputPanel = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Padding = new Padding(4) };
-        outputPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        outputPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-        outputPanel.Controls.Add(new Label { Text = "运行输出", Font = new System.Drawing.Font(font, System.Drawing.FontStyle.Bold), AutoSize = true }, 0, 0);
+        var outputGroup = new GroupBox
+        {
+            Text = "运行输出",
+            Dock = DockStyle.Fill,
+            Padding = new Padding(8),
+            Margin = new Padding(0, 10, 0, 0)
+        };
         _outputBox = new TextBox
         {
             Dock = DockStyle.Fill,
             Multiline = true,
-            ScrollBars = ScrollBars.Vertical,
+            WordWrap = false,
+            ScrollBars = ScrollBars.Both,
             ReadOnly = true,
-            BackColor = System.Drawing.Color.FromArgb(16, 24, 40),
-            ForeColor = System.Drawing.Color.FromArgb(228, 231, 236),
+            BackColor = System.Drawing.SystemColors.Window,
+            ForeColor = System.Drawing.SystemColors.WindowText,
             Font = new System.Drawing.Font("Consolas", 10F),
             Text = "等待运行。"
         };
-        outputPanel.Controls.Add(_outputBox, 0, 1);
-        root.Controls.Add(outputPanel, 0, 3);
+        outputGroup.Controls.Add(_outputBox);
+        right.Controls.Add(outputGroup, 0, 1);
+
+        var actionPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 5,
+            RowCount = 1,
+            Margin = new Padding(0, 8, 0, 0),
+            AutoSize = true
+        };
+        actionPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        actionPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+        _previewBtn = CreateActionButton("预览", System.Drawing.Color.FromArgb(31, 95, 168));
+        _applyBtn = CreateActionButton("执行写入", System.Drawing.Color.FromArgb(180, 35, 24));
+        _defaultsBtn = CreateActionButton("恢复默认路径", System.Drawing.Color.FromArgb(71, 84, 103));
+        _confirmCheck = new CheckBox { Text = "我已备份或确认可以写入", AutoSize = true, Anchor = AnchorStyles.Right, Margin = new Padding(12, 6, 0, 0) };
+        _previewBtn.Click += async (_, __) => await RunSyncAsync(false);
+        _applyBtn.Click += async (_, __) => await RunSyncAsync(true);
+        _defaultsBtn.Click += (_, __) => ResetDefaults();
+        actionPanel.Controls.Add(_previewBtn, 0, 0);
+        actionPanel.Controls.Add(_applyBtn, 1, 0);
+        actionPanel.Controls.Add(_defaultsBtn, 2, 0);
+        actionPanel.Controls.Add(_confirmCheck, 4, 0);
+        root.Controls.Add(actionPanel, 0, 2);
+        UpdateModeButtonVisuals();
     }
+
+    private static TableLayoutPanel CreateSectionPanel(string title)
+    {
+        var panel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 1,
+            Padding = new Padding(14),
+            BackColor = System.Drawing.Color.FromArgb(252, 253, 255),
+            AutoSize = true
+        };
+        panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        panel.Controls.Add(new Label
+        {
+            Text = title,
+            Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold),
+            ForeColor = System.Drawing.Color.FromArgb(52, 64, 84),
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 10)
+        }, 0, 0);
+        return panel;
+    }
+
+    private static RadioButton CreateModeButton(string text, bool isChecked)
+    {
+        return new RadioButton
+        {
+            Text = text,
+            Checked = isChecked,
+            AutoSize = true,
+            Margin = new Padding(0, 4, 0, 0),
+            ForeColor = System.Drawing.SystemColors.ControlText
+        };
+    }
+
+    private static TextBox CreateTextBox(string text = "")
+    {
+        return new TextBox
+        {
+            Text = text,
+            Dock = DockStyle.Top,
+            Height = 26,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+    }
+
+    private static Control CreateField(string label, TextBox textBox, string? help)
+    {
+        var panel = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = help == null ? 2 : 3, ColumnCount = 1, Padding = new Padding(0, 0, 12, 12), AutoSize = true };
+        panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        if (help != null) panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        panel.Controls.Add(new Label { Text = label, Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Bold), ForeColor = System.Drawing.SystemColors.ControlText, AutoSize = true }, 0, 0);
+        panel.Controls.Add(textBox, 0, 1);
+        if (help != null)
+            panel.Controls.Add(CreateHelpLabel(help), 0, 2);
+        return panel;
+    }
+
+    private static Label CreateHelpLabel(string text)
+    {
+        return new Label
+        {
+            Text = text,
+            ForeColor = System.Drawing.SystemColors.GrayText,
+            AutoSize = true,
+            MaximumSize = new System.Drawing.Size(240, 0),
+            Margin = new Padding(22, 2, 0, 10)
+        };
+    }
+
+    private static Button CreateActionButton(string text, System.Drawing.Color backColor)
+    {
+        return new Button
+        {
+            Text = text,
+            AutoSize = true,
+            MinimumSize = new System.Drawing.Size(92, 36),
+            Margin = new Padding(0, 0, 10, 0),
+            BackColor = backColor,
+            ForeColor = System.Drawing.Color.White,
+            FlatStyle = FlatStyle.Flat
+        };
+    }
+
+    private void UpdateModeButtonVisuals()
+    {
+        StyleModeButton(_modeMutual);
+        StyleModeButton(_modeOpenAi);
+        StyleModeButton(_modeMigrate);
+    }
+
+    private static void StyleModeButton(RadioButton button) => button.Font = new System.Drawing.Font(button.Font, button.Checked ? System.Drawing.FontStyle.Bold : System.Drawing.FontStyle.Regular);
 
     private void ResetDefaults()
     {
@@ -173,7 +324,7 @@ public class MainForm : Form
         _targetProviderBox.Text = "openai";
     }
 
-    private void RunSync(bool apply)
+    private async Task RunSyncAsync(bool apply)
     {
         if (apply && !_confirmCheck.Checked)
         {
@@ -203,6 +354,8 @@ public class MainForm : Form
         var sb = new StringBuilder();
         try
         {
+            await Task.Run(() =>
+            {
             var config = SyncEngine.InspectConfig(Path.Combine(codexHome, "config.toml"), targetProvider);
             var stateDb = SyncEngine.ResolveStateDb(codexHome, config, null);
             var providers = SyncEngine.ResolveConfiguredProviders(config);
@@ -366,6 +519,7 @@ public class MainForm : Form
 
                 AppendMigrateReport(sb, codexHome, backupDir, targetProvider, keepProviders, filesScanned, filesNeedingUpdate, filesUpdated, sessionMetaRewritten, beforeCounts, afterCounts, sqliteReport, apply);
             }
+            });
 
             _outputBox.Text = sb.ToString();
             _statusLabel.Text = "完成";
@@ -386,7 +540,8 @@ public class MainForm : Form
         _previewBtn.Enabled = !busy;
         _applyBtn.Enabled = !busy;
         _defaultsBtn.Enabled = !busy;
-        _statusLabel.Text = busy ? "运行中" : "准备就绪";
+        if (busy)
+            _statusLabel.Text = "运行中";
     }
 
     static List<string> FormatCounts(Dictionary<string, int> counts)

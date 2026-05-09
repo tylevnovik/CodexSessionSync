@@ -14,37 +14,51 @@ class Program
     {
         try
         {
-        InnerMain(args);
+            InnerMain(args);
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Fatal error: {ex.Message}");
             Console.Error.WriteLine(ex.StackTrace);
-            Console.WriteLine("Press any key to exit...");
-        try { Console.ReadKey(); } catch { }
+            if (args.Length == 0 && !Console.IsInputRedirected)
+            {
+                Console.WriteLine("Press any key to exit...");
+                try { Console.ReadKey(); } catch { }
+            }
         }
     }
 
     static void InnerMain(string[] args)
     {
-        if (args.Contains("--preview") || args.Contains("--apply"))
+        if (args.Contains("--help") || args.Contains("-h"))
         {
-            var mode = "全供应商互同步";
-            var codexHome = SyncEngine.DefaultCodexHome();
-            string? backupDir = null;
-            var apply = args.Contains("--apply");
-            AnsiConsole.MarkupLine($"[green]CLI mode: {(apply ? "apply" : "preview")} on {codexHome}[/]");
-            RunSyncAndShow(mode, codexHome, backupDir, "openai", "openai", apply);
-            AnsiConsole.MarkupLine("[dim]按任意键退出...[/]");
-            Console.ReadKey(true);
+            ShowHelp();
             return;
         }
+
+        if (args.Contains("--preview") || args.Contains("--apply"))
+        {
+            var mode = ParseMode(GetArg(args, "--mode") ?? "mutual");
+            var codexHome = Path.GetFullPath(GetArg(args, "--codex-home") ?? SyncEngine.DefaultCodexHome());
+            var backupDirRaw = GetArg(args, "--backup-dir");
+            var backupDir = string.IsNullOrWhiteSpace(backupDirRaw) ? null : Path.GetFullPath(backupDirRaw);
+            var sourceProvider = GetArg(args, "--source") ?? "openai";
+            var targetProvider = GetArg(args, "--target") ?? "openai";
+            var apply = args.Contains("--apply");
+            RenderRunSummary(mode, codexHome, backupDir, sourceProvider, targetProvider, apply);
+            RunSyncAndShow(mode, codexHome, backupDir, sourceProvider, targetProvider, apply);
+            return;
+        }
+
+        RenderIntro();
 
         while (true)
         {
             var mode = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[green]选择同步模式[/]")
+                    .Title("[bold #1f5fa8]选择同步模式[/]")
+                    .PageSize(4)
+                    .HighlightStyle(new Style(Color.White, Color.Blue))
                     .AddChoices(new[] {
                         "全供应商互同步",
                         "OpenAI 同步到全部",
@@ -53,16 +67,17 @@ class Program
                     }));
 
             if (mode == "退出") break;
+            RenderModeHint(mode);
 
             var codexHome = AnsiConsole.Prompt(
-                new TextPrompt<string>("[green]Codex Home[/] (默认读取 CODEX_HOME 或 ~/.codex):")
+                new TextPrompt<string>("[#1f5fa8]Codex Home[/] (默认读取 CODEX_HOME 或 ~/.codex):")
                     .DefaultValue(SyncEngine.DefaultCodexHome())
                     .AllowEmpty());
             if (string.IsNullOrWhiteSpace(codexHome)) codexHome = SyncEngine.DefaultCodexHome();
             codexHome = Path.GetFullPath(codexHome);
 
             var backupDir = AnsiConsole.Prompt(
-                new TextPrompt<string>("[green]备份目录[/] (可选，写入前备份 SQLite):")
+                new TextPrompt<string>("[#1f5fa8]备份目录[/] (可选，写入前备份 SQLite):")
                     .DefaultValue(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "codex-session-sync-backup"))
                     .AllowEmpty());
             if (string.IsNullOrWhiteSpace(backupDir)) backupDir = null;
@@ -74,20 +89,21 @@ class Program
             if (mode == "OpenAI 同步到全部")
             {
                 sourceProvider = AnsiConsole.Prompt(
-                    new TextPrompt<string>("[green]源 provider[/]:")
+                    new TextPrompt<string>("[#1f5fa8]源 provider[/]:")
                         .DefaultValue("openai"));
             }
 
             if (mode == "单目标迁移")
             {
                 targetProvider = AnsiConsole.Prompt(
-                    new TextPrompt<string>("[green]目标 provider[/]:")
+                    new TextPrompt<string>("[#1f5fa8]目标 provider[/]:")
                         .DefaultValue("openai"));
             }
 
             var action = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[green]操作[/]")
+                    .Title("[bold #1f5fa8]操作[/]")
+                    .HighlightStyle(new Style(Color.White, Color.Blue))
                     .AddChoices(new[] { "预览", "执行写入" }));
 
             var apply = action == "执行写入";
@@ -101,15 +117,142 @@ class Program
                 }
             }
 
+            RenderRunSummary(mode, codexHome, backupDir, sourceProvider, targetProvider, apply);
             RunSyncAndShow(mode, codexHome, backupDir, sourceProvider, targetProvider, apply);
+
+            if (!apply)
+            {
+                AnsiConsole.WriteLine();
+                var previewNextAction = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[bold #1f5fa8]预览完成，接下来[/]")
+                        .HighlightStyle(new Style(Color.White, Color.Blue))
+                        .AddChoices(new[] { "使用相同参数执行写入", "修改参数", "退出" }));
+
+                if (previewNextAction == "使用相同参数执行写入")
+                {
+                    var confirmed = AnsiConsole.Confirm("我已备份或确认可以写入?", false);
+                    if (confirmed)
+                    {
+                        RenderRunSummary(mode, codexHome, backupDir, sourceProvider, targetProvider, apply: true);
+                        RunSyncAndShow(mode, codexHome, backupDir, sourceProvider, targetProvider, apply: true);
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[yellow]未确认，返回主菜单。[/]");
+                        continue;
+                    }
+                }
+                else if (previewNextAction == "修改参数")
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
 
             AnsiConsole.WriteLine();
             var nextAction = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[green]接下来[/]")
+                    .Title("[bold #1f5fa8]接下来[/]")
+                    .HighlightStyle(new Style(Color.White, Color.Blue))
                     .AddChoices(new[] { "继续操作", "退出" }));
             if (nextAction == "退出") break;
         }
+    }
+
+    static string? GetArg(string[] args, string name)
+    {
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (string.Equals(args[i], name, StringComparison.OrdinalIgnoreCase))
+                return args[i + 1];
+        }
+        return null;
+    }
+
+    static string ParseMode(string value)
+    {
+        return value.ToLowerInvariant() switch
+        {
+            "mutual" => "全供应商互同步",
+            "openai" => "OpenAI 同步到全部",
+            "migrate" => "单目标迁移",
+            _ => "全供应商互同步"
+        };
+    }
+
+    static void RenderIntro()
+    {
+        var grid = new Grid()
+            .AddColumn()
+            .AddColumn();
+        grid.AddRow(
+            new Markup("[bold #101828]Codex Session Sync[/]\n[grey]同步 JSONL 会话文件和 state_*.sqlite 索引[/]"),
+            new Panel("[#1f5fa8]PREVIEW FIRST[/]\n[grey]默认预览，不写入[/]")
+                .Border(BoxBorder.Rounded)
+                .BorderStyle(new Style(Color.Blue)));
+
+        AnsiConsole.Write(new Panel(grid)
+            .Header("会话同步控制台")
+            .Border(BoxBorder.Rounded)
+            .BorderStyle(new Style(Color.SteelBlue)));
+        AnsiConsole.WriteLine();
+    }
+
+    static void RenderModeHint(string mode)
+    {
+        var text = mode switch
+        {
+            "全供应商互同步" => "自动发现 provider，并为每个 provider 补齐镜像会话。",
+            "OpenAI 同步到全部" => "只从源 provider 读取会话，并为其它 provider 创建镜像。",
+            "单目标迁移" => "把非保留 provider 的历史会话迁移到指定目标 provider。",
+            _ => ""
+        };
+        AnsiConsole.Write(new Panel(text)
+            .Header(mode)
+            .Border(BoxBorder.Rounded)
+            .BorderStyle(new Style(Color.Grey)));
+    }
+
+    static void RenderRunSummary(string mode, string codexHome, string? backupDir, string sourceProvider, string targetProvider, bool apply)
+    {
+        var table = new Table()
+            .NoBorder()
+            .AddColumn("项")
+            .AddColumn("值");
+        table.AddRow("模式", mode);
+        table.AddRow("操作", apply ? "[red]执行写入[/]" : "[blue]预览[/]");
+        table.AddRow("Codex Home", Markup.Escape(codexHome));
+        table.AddRow("备份目录", backupDir == null ? "[grey]<未设置>[/]" : Markup.Escape(backupDir));
+        table.AddRow("源 provider", Markup.Escape(sourceProvider));
+        table.AddRow("目标 provider", Markup.Escape(targetProvider));
+
+        AnsiConsole.Write(new Panel(table)
+            .Header("本次运行")
+            .Border(BoxBorder.Rounded)
+            .BorderStyle(new Style(apply ? Color.Red : Color.Blue)));
+    }
+
+    static void ShowHelp()
+    {
+        AnsiConsole.Write(new Panel(new Text("""
+Usage:
+  CodexSessionSync.Tui.exe
+  CodexSessionSync.Tui.exe --preview [--mode mutual|openai|migrate]
+  CodexSessionSync.Tui.exe --apply --backup-dir <path> [--mode mutual|openai|migrate]
+
+Options:
+  --codex-home <path>   指定 Codex Home，默认读取 CODEX_HOME 或 ~/.codex
+  --backup-dir <path>   写入前的备份目录
+  --source <provider>   OpenAI 同步到全部模式的源 provider，默认 openai
+  --target <provider>   单目标迁移模式的目标 provider，默认 openai
+"""))
+            .Header("Codex Session Sync")
+            .Border(BoxBorder.Rounded)
+            .BorderStyle(new Style(Color.SteelBlue)));
     }
 
     static void RunSyncAndShow(string mode, string codexHome, string? backupDir, string sourceProvider, string targetProvider, bool apply)

@@ -18,7 +18,7 @@ function Reset-Directory {
     New-Item -ItemType Directory -Path $fullPath -Force | Out-Null
 }
 
-# ── variant definitions ──────────────────────────────────
+# Variant definitions
 # fdd kept as reference but not in default matrix (trim not allowed)
 $variants = @{
     "aot" = @{
@@ -35,15 +35,15 @@ $variants = @{
     }
 }
 
-# ── project × variant matrix ────────────────────────────
-# Rule: if AOT available → only AOT. Otherwise → self-contained.
+# Project and variant matrix.
+# Rule: if AOT available, publish only AOT. Otherwise, publish self-contained.
 $matrix = @(
     @{ Project = "CodexSessionSync.Avalonia"; Csproj = "CodexSessionSync.Avalonia\CodexSessionSync.Avalonia.csproj"; Variants = @("aot") }
     @{ Project = "CodexSessionSync.Tui";      Csproj = "CodexSessionSync.Tui\CodexSessionSync.Tui.csproj";           Variants = @("aot") }
     @{ Project = "CodexSessionSync.WinForms"; Csproj = "CodexSessionSync.WinForms\CodexSessionSync.WinForms.csproj"; Variants = @("aot") }
 )
 
-# WPF cannot do AOT — self-contained only
+# WPF cannot do AOT, so publish self-contained only.
 $scOnly = @(
     @{ Project = "CodexSessionSync.Wpf"; Csproj = "CodexSessionSync.Wpf\CodexSessionSync.Wpf.csproj"; OutDir = "dist\CodexSessionSync.Wpf" }
 )
@@ -51,14 +51,16 @@ $scOnly = @(
 # WinUI supports NativeAOT, but Windows App SDK self-contained deployment is a folder.
 $winuiAot = @{ Project = "CodexSessionSync.WinUI"; Csproj = "CodexSessionSync.WinUI\CodexSessionSync.WinUI.csproj"; OutDir = "dist\CodexSessionSync.WinUI-aot" }
 
-# ═══════════════════════════════════════════════════════════
+# ------------------------------------------------------------
 function Publish-Variant {
     param($Project, $Csproj, $VariantName, $VariantProps)
     $outDir = Join-Path $root "dist\$Project-$VariantName"
     Write-Host "`n=== $Project - $VariantName  ->  $outDir ===" -ForegroundColor Cyan
     Reset-Directory $outDir
 
-    $props = @(
+    $publishArgs = @(
+        "publish",
+        (Join-Path $root $Csproj),
         "-c", "Release",
         "-r", "win-x64",
         "-p:SelfContained=$($VariantProps.SelfContained)",
@@ -68,7 +70,7 @@ function Publish-Variant {
         "-o", $outDir
     )
 
-    dotnet publish (Join-Path $root $Csproj) @props
+    & dotnet @publishArgs
     if ($LASTEXITCODE -ne 0) { throw "FAILED: $Project - $VariantName" }
 }
 
@@ -78,7 +80,9 @@ function Publish-WinUIAot {
     Write-Host "`n=== $Project - aot  ->  $outDir ===" -ForegroundColor Cyan
     Reset-Directory $outDir
 
-    $props = @(
+    $publishArgs = @(
+        "publish",
+        (Join-Path $root $Csproj),
         "-c", "Release",
         "-r", "win-x64",
         "-p:Platform=x64",
@@ -95,7 +99,7 @@ function Publish-WinUIAot {
         "-o", $outDir
     )
 
-    dotnet publish (Join-Path $root $Csproj) @props
+    & dotnet @publishArgs
     if ($LASTEXITCODE -ne 0) { throw "FAILED: $Project - aot" }
 }
 
@@ -122,7 +126,7 @@ function Compress-ReleaseDirectory {
     }
 }
 
-# ═══════════════════════════════════════════════════════════
+# ------------------------------------------------------------
 # Build AOT variants
 foreach ($entry in $matrix) {
     foreach ($vName in $entry.Variants) {
@@ -141,7 +145,7 @@ foreach ($sc in $scOnly) {
     if ($LASTEXITCODE -ne 0) { throw "FAILED: $($sc.Project) self-contained" }
 }
 
-# ═══════════════════════════════════════════════════════════
+# ------------------------------------------------------------
 # Zip AOT assets (exclude .pdb)
 $releaseDir = Join-Path $root "release"
 Reset-Directory $releaseDir
@@ -160,7 +164,7 @@ $winuiZipPath = Join-Path $releaseDir "$($winuiAot.Project)-aot.zip"
 $winuiSizeMB = Compress-ReleaseDirectory -SourceDir $winuiSrcDir -ZipPath $winuiZipPath
 Write-Host "  $($winuiAot.Project)-aot.zip  $winuiSizeMB MB"
 
-# Self-contained exe (no zip needed — single file)
+# Self-contained exe, no zip needed for the single file.
 foreach ($sc in $scOnly) {
     $srcExe = Join-Path $root "$($sc.OutDir)\$($sc.Project).exe"
     Copy-Item $srcExe $releaseDir -Force

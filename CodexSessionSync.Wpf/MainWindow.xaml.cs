@@ -10,10 +10,17 @@ namespace CodexSessionSync.Wpf;
 
 public partial class MainWindow : Window
 {
+    private bool _isLightTheme;
+
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += (_, __) => ResetDefaults();
+        Loaded += (_, __) =>
+        {
+            ResetDefaults();
+            UpdateModeVisuals();
+            ApplyTheme(isLightTheme: false);
+        };
     }
 
     private void ResetDefaults()
@@ -26,14 +33,19 @@ public partial class MainWindow : Window
 
     private void OnResetDefaults(object sender, RoutedEventArgs e) => ResetDefaults();
 
+    private void OnThemeToggleClick(object sender, RoutedEventArgs e) => ApplyTheme(!_isLightTheme);
+
     private void OnModeCardClick(object sender, MouseButtonEventArgs e)
     {
-        if (sender is Border border && border.Child is RadioButton rb)
+        if (sender is Border border && border.Child is RadioButton radioButton)
         {
-            rb.IsChecked = true;
+            radioButton.IsChecked = true;
+            UpdateModeVisuals();
             e.Handled = true;
         }
     }
+
+    private void OnModeChanged(object sender, RoutedEventArgs e) => UpdateModeVisuals();
 
     private void OnPreviewClick(object sender, RoutedEventArgs e) => RunSync(false);
 
@@ -403,12 +415,84 @@ public partial class MainWindow : Window
     {
         PreviewBtn.IsEnabled = !busy;
         ApplyBtn.IsEnabled = !busy;
-        StatusLabel.Text = busy ? "运行中" : "准备就绪";
+        DefaultsBtn.IsEnabled = !busy;
+        if (busy)
+            StatusLabel.Text = "运行中";
     }
 
     private void AppendOutput(string text)
     {
         OutputBox.Text += text;
         OutputBox.ScrollToEnd();
+    }
+
+    private void UpdateModeVisuals()
+    {
+        if (ModeMutualCard == null || ModeOpenAiCard == null || ModeMigrateCard == null)
+            return;
+
+        StyleModeCard(ModeMutualCard, ModeMutual.IsChecked == true);
+        StyleModeCard(ModeOpenAiCard, ModeOpenAi.IsChecked == true);
+        StyleModeCard(ModeMigrateCard, ModeMigrate.IsChecked == true);
+    }
+
+    private void StyleModeCard(Border card, bool isActive)
+    {
+        card.BorderBrush = BrushResource(isActive ? "AccentBrush" : "BorderBrushStrong");
+        card.BorderThickness = new Thickness(isActive ? 2 : 1);
+        card.Background = BrushResource(isActive
+            ? (_isLightTheme ? "ActiveCardBackgroundBrush" : "ActiveCardBackgroundBrush")
+            : "SecondaryButtonBrush");
+    }
+
+    private void ApplyTheme(bool isLightTheme)
+    {
+        _isLightTheme = isLightTheme;
+        ThemeToggleBtn.Content = isLightTheme ? "☾" : "☀";
+        ToolTipService.SetToolTip(ThemeToggleBtn, isLightTheme ? "切换到深色模式" : "切换到浅色模式");
+
+        if (isLightTheme)
+        {
+            SetBrush("AppBackgroundBrush", "#F4F6F8");
+            SetBrush("CardBackgroundBrush", "#FFFFFF");
+            SetBrush("InputBackgroundBrush", "#F8FAFC");
+            SetBrush("OutputBackgroundBrush", "#101827");
+            SetBrush("BorderBrushSoft", "#D6DEE8");
+            SetBrush("BorderBrushStrong", "#C4D0DE");
+            SetBrush("PrimaryTextBrush", "#101828");
+            SetBrush("SecondaryTextBrush", "#5F6B7A");
+            SetBrush("MutedTextBrush", "#7A8494");
+            SetBrush("SecondaryButtonBrush", "#EEF2F7");
+            SetBrush("ActiveCardBackgroundBrush", "#E8F4FF");
+        }
+        else
+        {
+            SetBrush("AppBackgroundBrush", "#0F1117");
+            SetBrush("CardBackgroundBrush", "#1B1F2A");
+            SetBrush("InputBackgroundBrush", "#272C36");
+            SetBrush("OutputBackgroundBrush", "#101827");
+            SetBrush("BorderBrushSoft", "#343B4A");
+            SetBrush("BorderBrushStrong", "#465064");
+            SetBrush("PrimaryTextBrush", "#F8FAFC");
+            SetBrush("SecondaryTextBrush", "#B9C0CC");
+            SetBrush("MutedTextBrush", "#9AA3B2");
+            SetBrush("SecondaryButtonBrush", "#2A2F3A");
+            SetBrush("ActiveCardBackgroundBrush", "#253044");
+        }
+
+        OutputBox.Foreground = new SolidColorBrush(ColorFromHex("#F8FAFC"));
+        UpdateModeVisuals();
+    }
+
+    private SolidColorBrush BrushResource(string key) => (SolidColorBrush)FindResource(key);
+
+    private void SetBrush(string key, string color)
+    {
+        Resources[key] = new SolidColorBrush(ColorFromHex(color));
+    }
+
+    private static Color ColorFromHex(string color)
+    {
+        return (Color)ColorConverter.ConvertFromString(color);
     }
 }
