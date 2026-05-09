@@ -13,7 +13,7 @@ public record ConfigStatus(
     string? SqliteHome
 );
 
-public record SourceSession(string Path, string ThreadId, string Provider);
+public record SourceSession(string Path, string ThreadId, string Provider, string? ForkedFromId = null);
 
 public record MirrorPlan(
     string SourcePath,
@@ -32,6 +32,8 @@ public class SyncReport
     public int MirrorFilesNeeded { get; set; }
     public int MirrorFilesCreated { get; set; }
     public int MirrorFilesExisting { get; set; }
+    public int MirrorFilesUpdated { get; set; }
+    public int MirrorFilesStale { get; set; }
     public int MirrorFileConflicts { get; set; }
     public int SqliteRowsNeeded { get; set; }
     public int SqliteRowsCreated { get; set; }

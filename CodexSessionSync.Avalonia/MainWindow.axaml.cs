@@ -106,15 +106,16 @@ public partial class MainWindow : Window
             if (mode == "mutual")
             {
                 var report = new SyncReport { SourceProvider = "*", TargetProviders = providers };
-                var sessions = SyncEngine.FindMutualSourceSessions(codexHome, providers, report);
-                var plans = SyncEngine.BuildMutualMirrorPlans(sessions, providers);
+                var sessions = SyncEngine.FindMutualSourceSessions(codexHome, providers, report, out var idMap, out var allProviders);
+                report.TargetProviders = allProviders;
+                var plans = SyncEngine.BuildMutualMirrorPlans(sessions, allProviders, idMap);
 
                 if (apply && backupDir != null && stateDb != null)
                     SyncEngine.BackupSqlite(stateDb, backupDir);
 
                 SyncEngine.SyncRolloutMirrors(plans, apply, report);
                 var sqliteReport = SyncEngine.SyncSqliteMirrors(stateDb, plans, apply, report);
-                AppendMutualReport(sb, codexHome, backupDir, config, providers, report, sqliteReport, apply);
+                AppendMutualReport(sb, codexHome, backupDir, config, allProviders, report, sqliteReport, apply);
             }
             else if (mode == "openai")
             {
@@ -334,6 +335,8 @@ public partial class MainWindow : Window
         sb.AppendLine($"- mirror files needed: {report.MirrorFilesNeeded}");
         sb.AppendLine($"- mirror files created: {report.MirrorFilesCreated}");
         sb.AppendLine($"- mirror files existing: {report.MirrorFilesExisting}");
+        sb.AppendLine($"- mirror files updated: {report.MirrorFilesUpdated}");
+        sb.AppendLine($"- mirror files stale (mirror newer, skipped): {report.MirrorFilesStale}");
         sb.AppendLine($"- file conflicts skipped: {report.MirrorFileConflicts}");
         sb.AppendLine("- providers before:");
         foreach (var line in FormatCounts(report.ProviderCountsBefore)) sb.AppendLine($"  {line}");

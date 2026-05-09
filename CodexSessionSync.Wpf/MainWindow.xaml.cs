@@ -82,8 +82,9 @@ public partial class MainWindow : Window
                 if (isMutual)
                 {
                     var report = new SyncReport { SourceProvider = "*", TargetProviders = providers };
-                    var sessions = SyncEngine.FindMutualSourceSessions(codexHome, providers, report);
-                    var plans = SyncEngine.BuildMutualMirrorPlans(sessions, providers);
+                    var sessions = SyncEngine.FindMutualSourceSessions(codexHome, providers, report, out var idMap, out var allProviders);
+                    report.TargetProviders = allProviders;
+                    var plans = SyncEngine.BuildMutualMirrorPlans(sessions, allProviders, idMap);
 
                     if (apply && backupDir != null && stateDb != null)
                         SyncEngine.BackupSqlite(stateDb, backupDir);
@@ -93,7 +94,7 @@ public partial class MainWindow : Window
 
                     sb.AppendLine($"Mode: mutual provider session sync / {(apply ? "apply" : "preview")}");
                     sb.AppendLine($"Codex Home: {codexHome}");
-                    sb.AppendLine($"Providers: {string.Join(", ", providers)}");
+                    sb.AppendLine($"Providers: {string.Join(", ", allProviders)}");
                     if (backupDir != null) sb.AppendLine($"Backup dir: {backupDir}");
                     sb.AppendLine();
                     sb.AppendLine("Config");
@@ -107,6 +108,8 @@ public partial class MainWindow : Window
                     sb.AppendLine($"- mirror files needed: {report.MirrorFilesNeeded}");
                     sb.AppendLine($"- mirror files created: {report.MirrorFilesCreated}");
                     sb.AppendLine($"- mirror files existing: {report.MirrorFilesExisting}");
+                    sb.AppendLine($"- mirror files updated: {report.MirrorFilesUpdated}");
+                    sb.AppendLine($"- mirror files stale (mirror newer, skipped): {report.MirrorFilesStale}");
                     sb.AppendLine($"- file conflicts skipped: {report.MirrorFileConflicts}");
                     sb.AppendLine("- providers before:");
                     foreach (var line in FormatCounts(report.ProviderCountsBefore)) sb.AppendLine($"  {line}");

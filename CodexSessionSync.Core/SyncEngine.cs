@@ -116,13 +116,19 @@ public class SyncEngine
 
     public static (SessionMetaInfo? meta, int lineNumber) GetSessionMeta(string path)
     {
-        string[] lines;
-        try { lines = File.ReadAllLines(path); }
+        string text;
+        try
+        {
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var sr = new StreamReader(fs, Encoding.UTF8);
+            text = sr.ReadToEnd();
+        }
         catch (IOException) { return (null, 0); }
+        var lines = text.Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
-            var line = lines[i].Trim();
-            if (string.IsNullOrEmpty(line)) continue;
+            var line = lines[i].TrimEnd('\r');
+            if (string.IsNullOrWhiteSpace(line)) continue;
             try
             {
                 using var doc = JsonDocument.Parse(line);
@@ -149,10 +155,12 @@ public class SyncEngine
         return meta.Id == UuidV5.Create(UuidV5.SyncNamespace, $"{meta.ForkedFromId}:{meta.Provider}").ToString();
     }
 
-    public static List<SourceSession> FindMutualSourceSessions(string codexHome, List<string> providers, SyncReport report)
+    public static List<SourceSession> FindMutualSourceSessions(string codexHome, List<string> configuredProviders, SyncReport report, out Dictionary<string, (string Provider, string Path)> idMap, out List<string> allProviders)
     {
-        var set = new HashSet<string>(providers);
-        var sessions = new List<SourceSession>();
+        var configuredSet = new HashSet<string>(configuredProviders);
+        var discoveredProviders = new HashSet<string>(configuredProviders);
+        var allMeta = new List<(string Path, string? Id, string? Provider, string? ForkedFromId)>();
+        idMap = new Dictionary<string, (string, string)>();
         foreach (var path in IterRolloutFiles(codexHome))
         {
             report.FilesScanned++;
@@ -163,15 +171,28 @@ public class SyncEngine
             report.ProviderCountsBefore[providerKey] = report.ProviderCountsBefore.GetValueOrDefault(providerKey) + 1;
             report.ProviderCountsAfter[providerKey] = report.ProviderCountsAfter.GetValueOrDefault(providerKey) + 1;
             var id = meta.Id;
-            if (string.IsNullOrWhiteSpace(provider) || !set.Contains(provider) || string.IsNullOrWhiteSpace(id) || IsGeneratedMirrorSession(meta))
+            if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(provider))
+            {
+                idMap[id] = (provider, path);
+                discoveredProviders.Add(provider);
+            }
+            allMeta.Add((path, id, provider, meta.ForkedFromId));
+        }
+        allProviders = discoveredProviders.Where(p => !string.IsNullOrWhiteSpace(p)).OrderBy(p => p).ToList();
+        var allSet = new HashSet<string>(allProviders);
+
+        var sessions = new List<SourceSession>();
+        foreach (var (path, id, provider, forkedFromId) in allMeta)
+        {
+            if (string.IsNullOrWhiteSpace(provider) || !allSet.Contains(provider) || string.IsNullOrWhiteSpace(id))
                 continue;
-            sessions.Add(new SourceSession(path, id, provider));
+            sessions.Add(new SourceSession(path, id, provider, forkedFromId));
         }
         report.SourceSessionsFound = sessions.Count;
         return sessions;
     }
 
-    public static List<MirrorPlan> BuildMutualMirrorPlans(List<SourceSession> sessions, List<string> providers)
+    public static List<MirrorPlan> BuildMutualMirrorPlans(List<SourceSession> sessions, List<string> providers, Dictionary<string, (string Provider, string Path)> idMap)
     {
         var plans = new List<MirrorPlan>();
         var seen = new HashSet<string>();
@@ -180,9 +201,24 @@ public class SyncEngine
             foreach (var provider in providers)
             {
                 if (provider == session.Provider) continue;
-                var mirrorId = UuidV5.Create(UuidV5.SyncNamespace, $"{session.ThreadId}:{provider}").ToString();
+
+                string mirrorId;
+                string mirrorPath;
+
+                if (session.ForkedFromId != null
+                    && idMap.TryGetValue(session.ForkedFromId, out var forkInfo)
+                    && forkInfo.Provider == provider)
+                {
+                    mirrorId = session.ForkedFromId;
+                    mirrorPath = forkInfo.Path;
+                }
+                else
+                {
+                    mirrorId = UuidV5.Create(UuidV5.SyncNamespace, $"{session.ThreadId}:{provider}").ToString();
+                    mirrorPath = ComputeMirrorPath(session.Path, session.ThreadId, mirrorId, provider);
+                }
+
                 if (!seen.Add(mirrorId)) continue;
-                var mirrorPath = ComputeMirrorPath(session.Path, session.ThreadId, mirrorId, provider);
                 plans.Add(new MirrorPlan(session.Path, session.ThreadId, provider, mirrorId, mirrorPath));
             }
         }
@@ -290,10 +326,35 @@ public class SyncEngine
         {
             if (File.Exists(plan.MirrorPath))
             {
-                if (InspectExistingMirror(plan))
-                    report.MirrorFilesExisting++;
-                else
+                if (!InspectExistingMirror(plan))
+                {
                     report.MirrorFileConflicts++;
+                    continue;
+                }
+
+                var rendered = RenderMirrorJsonl(plan);
+                var normRendered = NormalizeJsonlLines(rendered);
+                var normExisting = NormalizeJsonlLines(NormalizeLineEndings(File.ReadAllText(plan.MirrorPath)));
+                if (normRendered == normExisting)
+                {
+                    report.MirrorFilesExisting++;
+                    continue;
+                }
+
+                var srcLines = normRendered.Count(c => c == '\n');
+                var mirLines = normExisting.Count(c => c == '\n');
+                if (srcLines <= mirLines)
+                {
+                    report.MirrorFilesStale++;
+                    continue;
+                }
+
+                report.MirrorFilesUpdated++;
+                report.ProviderCountsAfter[plan.TargetProvider] = report.ProviderCountsAfter.GetValueOrDefault(plan.TargetProvider) + 1;
+                if (!apply) continue;
+
+                Directory.CreateDirectory(Path.GetDirectoryName(plan.MirrorPath)!);
+                File.WriteAllText(plan.MirrorPath, rendered, new UTF8Encoding(false));
                 continue;
             }
 
@@ -305,6 +366,35 @@ public class SyncEngine
             File.WriteAllText(plan.MirrorPath, RenderMirrorJsonl(plan), new UTF8Encoding(false));
             report.MirrorFilesCreated++;
         }
+    }
+
+    private static string NormalizeLineEndings(string text)
+    {
+        return text.Replace("\r\n", "\n").Replace("\r", "\n");
+    }
+
+    private static string NormalizeJsonlLines(string text)
+    {
+        var lines = new List<string>();
+        var opts = new JsonSerializerOptions { WriteIndented = false };
+        foreach (var raw in text.Split('\n'))
+        {
+            var line = raw.TrimEnd('\r');
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            try
+            {
+                var node = JsonNode.Parse(line);
+                if (node is JsonObject obj && obj.TryGetPropertyValue("type", out var t) && t is JsonValue tv && tv.GetValue<string>() == "session_meta")
+                    continue;
+                lines.Add(node?.ToJsonString(opts) ?? line);
+            }
+            catch
+            {
+                lines.Add(line);
+            }
+        }
+        return string.Join("\n", lines);
     }
 
     public static bool InspectExistingMirror(MirrorPlan plan)
