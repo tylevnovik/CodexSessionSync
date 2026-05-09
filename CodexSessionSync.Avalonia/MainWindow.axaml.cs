@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using CodexSessionSync.Core;
@@ -19,6 +20,9 @@ public partial class MainWindow : Window
     private RadioButton _modeMutual = null!;
     private RadioButton _modeOpenAi = null!;
     private RadioButton _modeMigrate = null!;
+    private Border _pillMutual = null!;
+    private Border _pillOpenAi = null!;
+    private Border _pillMigrate = null!;
     private Button _previewBtn = null!;
     private Button _applyBtn = null!;
     private Button _defaultsBtn = null!;
@@ -42,6 +46,9 @@ public partial class MainWindow : Window
         _modeMutual = this.FindControl<RadioButton>("ModeMutual")!;
         _modeOpenAi = this.FindControl<RadioButton>("ModeOpenAi")!;
         _modeMigrate = this.FindControl<RadioButton>("ModeMigrate")!;
+        _pillMutual = this.FindControl<Border>("PillMutual")!;
+        _pillOpenAi = this.FindControl<Border>("PillOpenAi")!;
+        _pillMigrate = this.FindControl<Border>("PillMigrate")!;
         _previewBtn = this.FindControl<Button>("PreviewBtn")!;
         _applyBtn = this.FindControl<Button>("ApplyBtn")!;
         _defaultsBtn = this.FindControl<Button>("DefaultsBtn")!;
@@ -52,7 +59,49 @@ public partial class MainWindow : Window
         _previewBtn.Click += OnPreviewClick;
         _applyBtn.Click += OnApplyClick;
         _defaultsBtn.Click += OnResetDefaults;
+
+        _pillMutual.PointerPressed += OnPillMutualClick;
+        _pillOpenAi.PointerPressed += OnPillOpenAiClick;
+        _pillMigrate.PointerPressed += OnPillMigrateClick;
     }
+
+    private void SelectMode(string mode)
+    {
+        _modeMutual.IsChecked = mode == "mutual";
+        _modeOpenAi.IsChecked = mode == "openai";
+        _modeMigrate.IsChecked = mode == "migrate";
+
+        UpdatePillVisuals();
+    }
+
+    private void UpdatePillVisuals()
+    {
+        var activeBg = Brush.Parse("#EBF0FC");
+        var inactiveBg = Brush.Parse("#F5F5F5");
+        var activeFg = Brush.Parse("#185ABD");
+        var inactiveFg = Brush.Parse("#555555");
+        var borderBrush = Brush.Parse("#E0E0E0");
+
+        void StylePill(Border pill, TextBlock? label, bool active)
+        {
+            pill.Background = active ? activeBg : inactiveBg;
+            pill.BorderBrush = active ? null : borderBrush;
+            pill.BorderThickness = active ? new global::Avalonia.Thickness(0) : new global::Avalonia.Thickness(0, 1);
+            if (label != null)
+            {
+                label.Foreground = active ? activeFg : inactiveFg;
+                label.FontWeight = active ? FontWeight.SemiBold : FontWeight.Normal;
+            }
+        }
+
+        StylePill(_pillMutual, _pillMutual.Child as TextBlock, _modeMutual.IsChecked == true);
+        StylePill(_pillOpenAi, _pillOpenAi.Child as TextBlock, _modeOpenAi.IsChecked == true);
+        StylePill(_pillMigrate, _pillMigrate.Child as TextBlock, _modeMigrate.IsChecked == true);
+    }
+
+    private void OnPillMutualClick(object? sender, PointerPressedEventArgs e) => SelectMode("mutual");
+    private void OnPillOpenAiClick(object? sender, PointerPressedEventArgs e) => SelectMode("openai");
+    private void OnPillMigrateClick(object? sender, PointerPressedEventArgs e) => SelectMode("migrate");
 
     private void ResetDefaults()
     {

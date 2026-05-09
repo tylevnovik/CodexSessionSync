@@ -4,82 +4,179 @@
         Title="Codex 会话同步工具"
         Width="960" Height="720"
         MinWidth="640" MinHeight="480"
-        Background="#f4f6f8">
-  <ScrollViewer>
-    <StackPanel Margin="24" Spacing="12">
-      <!-- Header -->
-      <Grid ColumnDefinitions="*,Auto">
-        <StackPanel Grid.Column="0" Spacing="4">
-          <TextBlock Text="Codex 会话同步工具" FontSize="24" FontWeight="Bold" />
-          <TextBlock Text="默认预览，不会写入；勾选确认后点击执行写入才会修改文件和 SQLite。" Foreground="Gray" FontSize="13" TextWrapping="Wrap" />
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+
+  <Panel>
+    <!-- Acrylic backdrop -->
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial
+          TintColor="#F3F6FC"
+          TintOpacity="0.8"
+          FallbackColor="#F3F6FC" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+
+    <ScrollViewer>
+      <StackPanel Margin="40,32" Spacing="20">
+
+        <!-- Title -->
+        <StackPanel Spacing="4">
+          <TextBlock Text="Codex 会话同步工具"
+                     FontSize="32" FontWeight="Bold"
+                     Foreground="#1A1A1A" />
+          <TextBlock Text="跨供应商会话数据同步 · 默认预览不写入，确认后执行"
+                     FontSize="14"
+                     Foreground="#707070" />
         </StackPanel>
-        <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="8" MinWidth="120" VerticalAlignment="Center">
-          <TextBlock x:Name="StatusLabel" Text="准备就绪" HorizontalAlignment="Center" />
-        </Border>
-      </Grid>
 
-      <!-- Config -->
-      <Border BorderBrush="#d0d5dd" BorderThickness="1" CornerRadius="6" Padding="16" Background="White">
-        <Grid ColumnDefinitions="*,16,*">
-          <StackPanel Grid.Column="0" Spacing="4">
-            <TextBlock Text="Codex Home" FontWeight="Bold" FontSize="13" Foreground="#1d2939" />
-            <TextBox x:Name="CodexHomeBox" />
-            <TextBlock Text="默认读取 CODEX_HOME 或当前用户的 .codex。" FontSize="12" Foreground="#667085" />
-          </StackPanel>
-          <StackPanel Grid.Column="2" Spacing="4">
-            <TextBlock Text="备份目录" FontWeight="Bold" FontSize="13" Foreground="#1d2939" />
-            <TextBox x:Name="BackupDirBox" />
-            <TextBlock Text="执行写入时建议填写，例如桌面上的 codex-backup。" FontSize="12" Foreground="#667085" />
-          </StackPanel>
-        </Grid>
-      </Border>
-
-      <!-- Mode -->
-      <Border BorderBrush="#d0d5dd" BorderThickness="1" CornerRadius="6" Padding="16" Background="White">
-        <StackPanel Spacing="12">
-          <TextBlock Text="同步模式" FontWeight="Bold" FontSize="13" Foreground="#1d2939" />
-          <StackPanel Orientation="Horizontal" Spacing="16">
-            <RadioButton x:Name="ModeMutual" Content="全供应商互同步" GroupName="Mode" IsChecked="True" />
-            <RadioButton x:Name="ModeOpenAi" Content="OpenAI 同步到全部" GroupName="Mode" />
-            <RadioButton x:Name="ModeMigrate" Content="单目标迁移" GroupName="Mode" />
-          </StackPanel>
-          <Grid ColumnDefinitions="*,16,*">
-            <StackPanel Grid.Column="0" Spacing="4">
-              <TextBlock Text="源 provider" FontWeight="Bold" FontSize="13" Foreground="#1d2939" />
-              <TextBox x:Name="SourceProviderBox" Text="openai" />
+        <!-- Config Card -->
+        <Border Background="White"
+                CornerRadius="8"
+                Padding="24"
+                BoxShadow="0 1 3 1 #14000000">
+          <Border.Styles>
+            <Style Selector="TextBox">
+              <Setter Property="CornerRadius" Value="4" />
+            </Style>
+          </Border.Styles>
+          <Grid ColumnDefinitions="*,24,*">
+            <StackPanel Grid.Column="0" Spacing="6">
+              <TextBlock Text="Codex Home" FontWeight="SemiBold" FontSize="14" Foreground="#242424" />
+              <TextBox x:Name="CodexHomeBox" />
+              <TextBlock Text="默认读取 CODEX_HOME 或当前用户 .codex"
+                         FontSize="12" Foreground="#999" />
             </StackPanel>
-            <StackPanel Grid.Column="2" Spacing="4">
-              <TextBlock Text="目标 provider" FontWeight="Bold" FontSize="13" Foreground="#1d2939" />
-              <TextBox x:Name="TargetProviderBox" Text="openai" />
+            <StackPanel Grid.Column="2" Spacing="6">
+              <TextBlock Text="备份目录" FontWeight="SemiBold" FontSize="14" Foreground="#242424" />
+              <TextBox x:Name="BackupDirBox" />
+              <TextBlock Text="建议填写，如桌面上的 codex-backup"
+                         FontSize="12" Foreground="#999" />
             </StackPanel>
           </Grid>
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <Button x:Name="PreviewBtn" Content="预览" Background="#344054" Foreground="White" FontWeight="Bold" />
-            <Button x:Name="ApplyBtn" Content="执行写入" Background="#b42318" Foreground="White" FontWeight="Bold" />
-            <Button x:Name="DefaultsBtn" Content="恢复默认路径" Background="#475467" Foreground="White" FontWeight="Bold" />
-            <CheckBox x:Name="ConfirmCheck" Content="我已备份或确认可以写入" VerticalAlignment="Center" />
-          </StackPanel>
-        </StackPanel>
-      </Border>
+        </Border>
 
-      <!-- Output -->
-      <Border Background="White" BorderBrush="#d0d5dd" BorderThickness="1" CornerRadius="6" Padding="12">
-        <StackPanel Spacing="8">
-          <TextBlock Text="运行输出" FontWeight="Bold" FontSize="13" Foreground="#1d2939" />
-          <TextBox x:Name="OutputBox"
-                   Background="#f9fafb"
-                   Foreground="#1d2939"
-                   FontFamily="Consolas"
-                   FontSize="13"
-                   BorderThickness="1"
-                   BorderBrush="#d0d5dd"
-                   IsReadOnly="True"
-                   TextWrapping="Wrap"
-                   AcceptsReturn="True"
-                   Height="280"
-                   Text="等待运行。" />
-        </StackPanel>
-      </Border>
-    </StackPanel>
-  </ScrollViewer>
+        <!-- Mode Card -->
+        <Border Background="White"
+                CornerRadius="8"
+                Padding="24"
+                BoxShadow="0 1 3 1 #14000000">
+          <Border.Styles>
+            <Style Selector="TextBox">
+              <Setter Property="CornerRadius" Value="4" />
+            </Style>
+          </Border.Styles>
+          <StackPanel Spacing="16">
+            <TextBlock Text="同步模式" FontWeight="SemiBold" FontSize="14" Foreground="#242424" />
+
+            <!-- Pill-style mode selector -->
+            <StackPanel Orientation="Horizontal" Spacing="0">
+              <Border Name="PillMutual"
+                      Background="#EBF0FC" CornerRadius="6,0,0,6"
+                      Padding="16,8"
+                      Cursor="Hand"
+                      PointerPressed="OnPillMutualClick">
+                <TextBlock Text="全供应商互同步" FontSize="13" FontWeight="SemiBold"
+                           Foreground="#185ABD" />
+              </Border>
+              <Border Name="PillOpenAi"
+                      Background="#F5F5F5" CornerRadius="0"
+                      Padding="16,8" BorderBrush="#E0E0E0" BorderThickness="0,1,0,1"
+                      Cursor="Hand"
+                      PointerPressed="OnPillOpenAiClick">
+                <TextBlock Text="OpenAI 到全部" FontSize="13"
+                           Foreground="#555" />
+              </Border>
+              <Border Name="PillMigrate"
+                      Background="#F5F5F5" CornerRadius="0,6,6,0"
+                      Padding="16,8" BorderBrush="#E0E0E0" BorderThickness="0,1,0,1"
+                      Cursor="Hand"
+                      PointerPressed="OnPillMigrateClick">
+                <TextBlock Text="单目标迁移" FontSize="13"
+                           Foreground="#555" />
+              </Border>
+            </StackPanel>
+
+            <!-- Hidden radio buttons for code-behind logic -->
+            <RadioButton x:Name="ModeMutual" GroupName="Mode" IsChecked="True" IsVisible="False" />
+            <RadioButton x:Name="ModeOpenAi" GroupName="Mode" IsVisible="False" />
+            <RadioButton x:Name="ModeMigrate" GroupName="Mode" IsVisible="False" />
+
+            <Grid ColumnDefinitions="*,24,*">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Text="源 provider" FontWeight="SemiBold" FontSize="14" Foreground="#242424" />
+                <TextBox x:Name="SourceProviderBox" Text="openai" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Text="目标 provider" FontWeight="SemiBold" FontSize="14" Foreground="#242424" />
+                <TextBox x:Name="TargetProviderBox" Text="openai" />
+              </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Button x:Name="PreviewBtn"
+                      Content="预览"
+                      Classes="accent"
+                      FontSize="14" FontWeight="SemiBold"
+                      Padding="24,6" />
+              <Button x:Name="ApplyBtn"
+                      Content="执行写入"
+                      Background="#C62828"
+                      Foreground="White"
+                      FontSize="14" FontWeight="SemiBold"
+                      Padding="24,6" />
+              <Button x:Name="DefaultsBtn"
+                      Content="恢复默认"
+                      FontSize="14"
+                      Padding="24,6" />
+              <CheckBox x:Name="ConfirmCheck"
+                        Content="我已备份或确认可以写入"
+                        VerticalAlignment="Center"
+                        Margin="12,0,0,0"
+                        FontSize="13" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Output Card -->
+        <Border Background="White"
+                CornerRadius="8"
+                Padding="20"
+                BoxShadow="0 1 3 1 #14000000">
+          <StackPanel Spacing="8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0"
+                         Text="运行输出"
+                         FontWeight="SemiBold" FontSize="14"
+                         Foreground="#242424" />
+              <Border Grid.Column="1"
+                      Background="#F0F7FF"
+                      CornerRadius="4"
+                      Padding="10,4">
+                <TextBlock x:Name="StatusLabel"
+                           Text="准备就绪"
+                           FontSize="12" FontWeight="SemiBold"
+                           Foreground="#185ABD" />
+              </Border>
+            </Grid>
+            <TextBox x:Name="OutputBox"
+                     Background="#FAFAFA"
+                     Foreground="#1A1A1A"
+                     FontFamily="Cascadia Code,Consolas,monospace"
+                     FontSize="13"
+                     CornerRadius="4"
+                     BorderBrush="#E0E0E0"
+                     BorderThickness="1"
+                     IsReadOnly="True"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     Height="280"
+                     Text="等待运行。" />
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+  </Panel>
 </Window>
