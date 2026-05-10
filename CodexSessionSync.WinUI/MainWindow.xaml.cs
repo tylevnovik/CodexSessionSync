@@ -500,18 +500,14 @@ namespace CodexSessionSync.WinUI
         {
             PreviewBtn.IsEnabled = !busy;
             ApplyBtn.IsEnabled = !busy;
-            StatusLabel.Text = busy ? "运行中" : "准备就绪";
+            if (busy)
+                StatusLabel.Text = "运行中";
         }
 
         private void AppendOutput(string text)
         {
             OutputBox.Text += text;
-            var grid = (Grid)OutputBox.Parent;
-            var sv = (ScrollViewer)VisualTreeHelper.GetChild(OutputBox, 0);
-            if (sv != null)
-            {
-                sv.ChangeView(null, sv.ScrollableHeight, null);
-            }
+            OutputBox.SelectionStart = OutputBox.Text.Length;
         }
     }
 }

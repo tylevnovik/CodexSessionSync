@@ -10,6 +10,8 @@ namespace CodexSessionSync.Wpf;
 
 public partial class MainWindow : Window
 {
+    private const string SwitchToLightGlyph = "\uE706";
+    private const string SwitchToDarkGlyph = "\uE708";
     private bool _isLightTheme;
 
     public MainWindow()
@@ -448,7 +450,7 @@ public partial class MainWindow : Window
     private void ApplyTheme(bool isLightTheme)
     {
         _isLightTheme = isLightTheme;
-        ThemeToggleBtn.Content = isLightTheme ? "☾" : "☀";
+        ThemeToggleIcon.Text = isLightTheme ? SwitchToDarkGlyph : SwitchToLightGlyph;
         ToolTipService.SetToolTip(ThemeToggleBtn, isLightTheme ? "切换到深色模式" : "切换到浅色模式");
 
         if (isLightTheme)

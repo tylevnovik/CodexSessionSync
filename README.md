@@ -11,7 +11,7 @@ Codex Session Sync 是一个本地会话同步工具，用来把 OpenAI Codex / 
 | 版本 | 推荐场景 | 发布形态 | 说明 |
 |------|----------|----------|------|
 | WinUI 3 | 想要最接近 Windows 11 的原生体验 | `CodexSessionSync.WinUI-aot.zip` | Windows App SDK + Acrylic + 深浅色切换。必须完整解压后运行，不是单 exe。 |
-| Avalonia | 想要接近 WinUI 3 的现代界面和较小 AOT 包 | `CodexSessionSync.Avalonia-aot.zip` | Acrylic 深色背景、WinUI-like 卡片布局、pill 模式选择器。Windows x64 self-contained Native AOT，需保留 zip 内 native DLL。 |
+| Avalonia | 想要接近 WinUI 3 的现代界面和较小 AOT 包 | `CodexSessionSync.Avalonia-aot.zip` | Acrylic 背景、深浅色切换、WinUI-like 卡片布局、pill 模式选择器。Windows x64 self-contained Native AOT，需保留 zip 内 native DLL。 |
 | WinForms | 想要最朴素、直接、兼容性好的 GUI | `CodexSessionSync.WinForms-aot.zip` | 紧凑管理工具窗，self-contained AOT，需保留 zip 内 SQLite native DLL。 |
 | WPF | 想要接近 WinUI 3 但保持单 exe | `CodexSessionSync.Wpf.exe` | WinUI-like 暗色 Fluent 工具界面，self-contained 单文件，但 WPF 不支持 Native AOT，体积最大。 |
 | TUI | 想在终端或脚本里跑 | `CodexSessionSync.Tui-aot.zip` | Spectre.Console 交互界面，支持交互模式和脚本参数。 |
@@ -38,7 +38,7 @@ WinUI 3 是最偏“原生 Windows 应用”的版本。它使用 Windows App SD
 
 ### Avalonia
 
-Avalonia 版本现在按 WinUI 3 的信息结构重做：顶部标题和状态、路径卡片、模式卡片、操作区、独立滚动的运行输出区都在同一套深色 Fluent/Acrylic 视觉里。它有跨平台潜力，但当前 release 只发布 Windows x64 self-contained Native AOT。
+Avalonia 版本现在按 WinUI 3 的信息结构重做：顶部标题和状态、路径卡片、模式卡片、操作区、独立滚动的运行输出区都在同一套 Fluent/Acrylic 视觉里，并支持深浅色切换。它有跨平台潜力，但当前 release 只发布 Windows x64 self-contained Native AOT。
 
 如果想要“现代一点、文件又比 WPF 小”的 GUI，优先选 Avalonia。
 
@@ -48,7 +48,7 @@ WinForms 版本是轻量 fallback：控件朴素，布局直接，依赖少，se
 
 ### WPF
 
-WPF 版本是 WinUI-like 的暗色 Fluent 工具界面，布局和 WinUI 3 版本保持接近，包含参数卡片、模式卡片、操作区和独立滚动的运行输出区。它发布为 self-contained 单文件，不需要安装 .NET 运行时，但 WPF 当前不能 Native AOT，所以体积明显更大。
+WPF 版本是 WinUI-like 的 Fluent 工具界面，布局和 WinUI 3 版本保持接近，包含参数卡片、模式卡片、操作区、轻量主题切换按钮和独立滚动的运行输出区。它发布为 self-contained 单文件，不需要安装 .NET 运行时，但 WPF 当前不能 Native AOT，所以体积明显更大。
 
 ### TUI
 

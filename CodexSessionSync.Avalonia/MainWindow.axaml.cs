@@ -8,12 +8,17 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Styling;
 using CodexSessionSync.Core;
 
 namespace CodexSessionSync.Avalonia;
 
 public partial class MainWindow : Window
 {
+    private const string SwitchToLightGlyph = "\uE706";
+    private const string SwitchToDarkGlyph = "\uE708";
+    private bool _isLightTheme;
+
     private TextBox _codexHomeBox = null!;
     private TextBox _backupDirBox = null!;
     private TextBox _sourceProviderBox = null!;
@@ -27,6 +32,7 @@ public partial class MainWindow : Window
     private Button _previewBtn = null!;
     private Button _applyBtn = null!;
     private Button _defaultsBtn = null!;
+    private Button _themeToggleBtn = null!;
     private CheckBox _confirmCheck = null!;
     private TextBox _outputBox = null!;
     private TextBlock _statusLabel = null!;
@@ -35,6 +41,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         ResetDefaults();
+        ApplyTheme(isLightTheme: false);
         UpdatePillVisuals();
     }
 
@@ -54,6 +61,7 @@ public partial class MainWindow : Window
         _previewBtn = this.FindControl<Button>("PreviewBtn")!;
         _applyBtn = this.FindControl<Button>("ApplyBtn")!;
         _defaultsBtn = this.FindControl<Button>("DefaultsBtn")!;
+        _themeToggleBtn = this.FindControl<Button>("ThemeToggleBtn")!;
         _confirmCheck = this.FindControl<CheckBox>("ConfirmCheck")!;
         _outputBox = this.FindControl<TextBox>("OutputBox")!;
         _statusLabel = this.FindControl<TextBlock>("StatusLabel")!;
@@ -61,6 +69,7 @@ public partial class MainWindow : Window
         _previewBtn.Click += OnPreviewClick;
         _applyBtn.Click += OnApplyClick;
         _defaultsBtn.Click += OnResetDefaults;
+        _themeToggleBtn.Click += OnThemeToggleClick;
 
         _pillMutual.PointerPressed += OnPillMutualClick;
         _pillOpenAi.PointerPressed += OnPillOpenAiClick;
@@ -78,10 +87,10 @@ public partial class MainWindow : Window
 
     private void UpdatePillVisuals()
     {
-        var activeBg = Brush.Parse("#203A5F");
-        var inactiveBg = Brush.Parse("#111A2B");
-        var activeBorder = Brush.Parse("#4C8DD4");
-        var inactiveBorder = Brush.Parse("#31435D");
+        var activeBg = Brush.Parse(_isLightTheme ? "#E8F4FF" : "#203A5F");
+        var inactiveBg = Brush.Parse(_isLightTheme ? "#F8FAFC" : "#111A2B");
+        var activeBorder = Brush.Parse(_isLightTheme ? "#40BDF8" : "#4C8DD4");
+        var inactiveBorder = Brush.Parse(_isLightTheme ? "#C4D0DE" : "#31435D");
 
         void StylePill(Border pill, bool active)
         {
@@ -99,6 +108,49 @@ public partial class MainWindow : Window
     private void OnPillMutualClick(object? sender, PointerPressedEventArgs e) => SelectMode("mutual");
     private void OnPillOpenAiClick(object? sender, PointerPressedEventArgs e) => SelectMode("openai");
     private void OnPillMigrateClick(object? sender, PointerPressedEventArgs e) => SelectMode("migrate");
+    private void OnThemeToggleClick(object? sender, RoutedEventArgs e) => ApplyTheme(!_isLightTheme);
+
+    private void ApplyTheme(bool isLightTheme)
+    {
+        _isLightTheme = isLightTheme;
+        RequestedThemeVariant = isLightTheme ? ThemeVariant.Light : ThemeVariant.Dark;
+        _themeToggleBtn.Content = isLightTheme ? SwitchToDarkGlyph : SwitchToLightGlyph;
+        ToolTip.SetTip(_themeToggleBtn, isLightTheme ? "切换到深色模式" : "切换到浅色模式");
+
+        if (isLightTheme)
+        {
+            SetBrush("RootSurfaceBrush", "#EEF8FAFC");
+            SetBrush("CardSurfaceBrush", "#FDFEFF");
+            SetBrush("InsetSurfaceBrush", "#F4F7FA");
+            SetBrush("OutputSurfaceBrush", "#0D1726");
+            SetBrush("OutputInputBrush", "#09111F");
+            SetBrush("BorderBrushSoft", "#D6DEE8");
+            SetBrush("BorderBrushStrong", "#C4D0DE");
+            SetBrush("PrimaryTextBrush", "#101828");
+            SetBrush("SecondaryTextBrush", "#526173");
+            SetBrush("MutedTextBrush", "#667085");
+            SetBrush("ButtonSurfaceBrush", "#EEF2F7");
+        }
+        else
+        {
+            SetBrush("RootSurfaceBrush", "#E60B1220");
+            SetBrush("CardSurfaceBrush", "#C8121C2D");
+            SetBrush("InsetSurfaceBrush", "#111A2B");
+            SetBrush("OutputSurfaceBrush", "#0A1020");
+            SetBrush("OutputInputBrush", "#070C16");
+            SetBrush("BorderBrushSoft", "#2B3A52");
+            SetBrush("BorderBrushStrong", "#31435D");
+            SetBrush("PrimaryTextBrush", "#EEF4FF");
+            SetBrush("SecondaryTextBrush", "#B7C4D8");
+            SetBrush("MutedTextBrush", "#96A6BD");
+            SetBrush("ButtonSurfaceBrush", "#18253A");
+        }
+
+        _outputBox.Foreground = Brush.Parse("#E4E7EC");
+        UpdatePillVisuals();
+    }
+
+    private void SetBrush(string key, string color) => Resources[key] = new SolidColorBrush(Color.Parse(color));
 
     private void ResetDefaults()
     {
@@ -113,7 +165,7 @@ public partial class MainWindow : Window
 
     private async void OnApplyClick(object? sender, RoutedEventArgs e)
     {
-        if (!_confirmCheck.IsChecked == true)
+        if (_confirmCheck.IsChecked != true)
         {
             _outputBox.Text = "执行写入前，请先勾选确认。";
             return;

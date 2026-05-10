@@ -7,17 +7,31 @@
         TransparencyLevelHint="AcrylicBlur"
         Background="Transparent">
 
+  <Window.Resources>
+    <SolidColorBrush x:Key="RootSurfaceBrush" Color="#E60B1220" />
+    <SolidColorBrush x:Key="CardSurfaceBrush" Color="#C8121C2D" />
+    <SolidColorBrush x:Key="InsetSurfaceBrush" Color="#111A2B" />
+    <SolidColorBrush x:Key="OutputSurfaceBrush" Color="#0A1020" />
+    <SolidColorBrush x:Key="OutputInputBrush" Color="#070C16" />
+    <SolidColorBrush x:Key="BorderBrushSoft" Color="#2B3A52" />
+    <SolidColorBrush x:Key="BorderBrushStrong" Color="#31435D" />
+    <SolidColorBrush x:Key="PrimaryTextBrush" Color="#EEF4FF" />
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B7C4D8" />
+    <SolidColorBrush x:Key="MutedTextBrush" Color="#96A6BD" />
+    <SolidColorBrush x:Key="ButtonSurfaceBrush" Color="#18253A" />
+  </Window.Resources>
+
   <Window.Styles>
     <Style Selector="TextBlock">
-      <Setter Property="Foreground" Value="#EEF4FF" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
     </Style>
     <Style Selector="TextBox">
       <Setter Property="CornerRadius" Value="6" />
       <Setter Property="MinHeight" Value="36" />
-      <Setter Property="BorderBrush" Value="#31435D" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushStrong}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Background" Value="#111A2B" />
-      <Setter Property="Foreground" Value="#F8FAFC" />
+      <Setter Property="Background" Value="{DynamicResource InsetSurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
       <Setter Property="Padding" Value="10,6" />
       <Setter Property="FontSize" Value="13" />
     </Style>
@@ -26,9 +40,9 @@
       <Setter Property="MinHeight" Value="36" />
       <Setter Property="Padding" Value="18,6" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Background" Value="#18253A" />
-      <Setter Property="Foreground" Value="#EEF4FF" />
-      <Setter Property="BorderBrush" Value="#38506F" />
+      <Setter Property="Background" Value="{DynamicResource ButtonSurfaceBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushStrong}" />
       <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.accent">
@@ -42,7 +56,7 @@
       <Setter Property="BorderBrush" Value="#DA6A61" />
     </Style>
     <Style Selector="CheckBox">
-      <Setter Property="Foreground" Value="#D9E2F2" />
+      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
       <Setter Property="FontSize" Value="13" />
     </Style>
   </Window.Styles>
@@ -59,26 +73,40 @@
 
     <Border Margin="18"
             CornerRadius="10"
-            Background="#E60B1220"
-            BorderBrush="#2B3A52"
+            Background="{DynamicResource RootSurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrushSoft}"
             BorderThickness="1"
             BoxShadow="0 20 48 0 #66000000"
             ClipToBounds="True">
       <Grid Margin="24" RowDefinitions="Auto,16,Auto,16,Auto,16,*">
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
           <StackPanel Grid.Column="0" Spacing="4">
             <TextBlock Text="Codex 会话同步工具"
                        FontSize="26"
                        FontWeight="SemiBold" />
             <TextBlock Text="默认预览，不会写入；勾选确认后点击执行写入才会修改文件和 SQLite。"
                        FontSize="13"
-                       Foreground="#B7C4D8"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        TextWrapping="Wrap" />
           </StackPanel>
 
-          <Border Grid.Column="1"
-                  Background="#162238"
-                  BorderBrush="#31435D"
+          <Button x:Name="ThemeToggleBtn"
+                  Grid.Column="1"
+                  Content="&#xE706;"
+                  Width="36"
+                  MinWidth="36"
+                  MinHeight="36"
+                  Padding="0"
+                  Margin="0,0,12,0"
+                  Background="Transparent"
+                  BorderBrush="Transparent"
+                  FontFamily="Segoe Fluent Icons"
+                  FontSize="16"
+                  ToolTip.Tip="切换到浅色模式" />
+
+          <Border Grid.Column="2"
+                  Background="{DynamicResource InsetSurfaceBrush}"
+                  BorderBrush="{DynamicResource BorderBrushStrong}"
                   BorderThickness="1"
                   CornerRadius="4"
                   Padding="14,8"
@@ -93,8 +121,8 @@
         </Grid>
 
         <Border Grid.Row="2"
-                Background="#C8121C2D"
-                BorderBrush="#2E405B"
+                Background="{DynamicResource CardSurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrushSoft}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="18">
@@ -106,7 +134,7 @@
               <TextBox x:Name="CodexHomeBox" />
               <TextBlock Text="默认读取 CODEX_HOME 或当前用户的 .codex。"
                          FontSize="12"
-                         Foreground="#96A6BD"
+                         Foreground="{DynamicResource MutedTextBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
 
@@ -117,15 +145,15 @@
               <TextBox x:Name="BackupDirBox" />
               <TextBlock Text="执行写入时建议填写，例如桌面上的 codex-backup。"
                          FontSize="12"
-                         Foreground="#96A6BD"
+                         Foreground="{DynamicResource MutedTextBrush}"
                          TextWrapping="Wrap" />
             </StackPanel>
           </Grid>
         </Border>
 
         <Border Grid.Row="4"
-                Background="#C8121C2D"
-                BorderBrush="#2E405B"
+                Background="{DynamicResource CardSurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrushSoft}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="18">
@@ -150,7 +178,7 @@
                                FontWeight="SemiBold" />
                     <TextBlock Text="配置中的每个 provider 最终看到同一批会话。"
                                FontSize="12"
-                               Foreground="#AFC3DF"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
@@ -169,7 +197,7 @@
                                FontWeight="SemiBold" />
                     <TextBlock Text="以 source provider 为源，给其它 provider 创建镜像。"
                                FontSize="12"
-                               Foreground="#AFC3DF"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
@@ -188,7 +216,7 @@
                                FontWeight="SemiBold" />
                     <TextBlock Text="把非保留 provider 的历史会话迁移到目标 provider。"
                                FontSize="12"
-                               Foreground="#AFC3DF"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
                                TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
@@ -239,8 +267,8 @@
         </Border>
 
         <Border Grid.Row="6"
-                Background="#0A1020"
-                BorderBrush="#24344D"
+                Background="{DynamicResource OutputSurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrushSoft}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="16"
@@ -254,29 +282,29 @@
                            FontWeight="SemiBold" />
                 <TextBlock Text="报告会区分需创建、已存在、过期跳过和冲突。"
                            FontSize="12"
-                           Foreground="#96A6BD"
+                           Foreground="{DynamicResource MutedTextBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <Border Grid.Column="1"
-                      Background="#17253D"
+                      Background="{DynamicResource InsetSurfaceBrush}"
                       CornerRadius="999"
                       Padding="10,5"
                       VerticalAlignment="Center">
                 <TextBlock Text="LOG"
                            FontSize="11"
                            FontWeight="SemiBold"
-                           Foreground="#BBD7F5" />
+                           Foreground="{DynamicResource SecondaryTextBrush}" />
               </Border>
             </Grid>
 
             <TextBox Grid.Row="2"
                      x:Name="OutputBox"
                      MinHeight="0"
-                     Background="#070C16"
-                     Foreground="#E4E7EC"
+                     Background="{DynamicResource OutputInputBrush}"
+                     Foreground="{DynamicResource PrimaryTextBrush}"
                      FontFamily="Cascadia Code,Consolas,monospace"
                      FontSize="13"
-                     BorderBrush="#24344D"
+                     BorderBrush="{DynamicResource BorderBrushSoft}"
                      BorderThickness="1"
                      CornerRadius="6"
                      IsReadOnly="True"
