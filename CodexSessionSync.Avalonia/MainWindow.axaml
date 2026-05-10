@@ -18,7 +18,12 @@
     <SolidColorBrush x:Key="PrimaryTextBrush" Color="#EEF4FF" />
     <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B7C4D8" />
     <SolidColorBrush x:Key="MutedTextBrush" Color="#96A6BD" />
+    <SolidColorBrush x:Key="OutputTextBrush" Color="#EEF4FF" />
+    <SolidColorBrush x:Key="OutputMutedTextBrush" Color="#AFC3DF" />
     <SolidColorBrush x:Key="ButtonSurfaceBrush" Color="#18253A" />
+    <SolidColorBrush x:Key="ThemeButtonRestBrush" Color="#01000000" />
+    <SolidColorBrush x:Key="ThemeButtonHoverBrush" Color="#18FFFFFF" />
+    <SolidColorBrush x:Key="ThemeButtonPressedBrush" Color="#263A86FF" />
   </Window.Resources>
 
   <Window.Styles>
@@ -54,6 +59,26 @@
       <Setter Property="Background" Value="#B43229" />
       <Setter Property="Foreground" Value="White" />
       <Setter Property="BorderBrush" Value="#DA6A61" />
+    </Style>
+    <Style Selector="Button.themeIcon">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Height" Value="40" />
+      <Setter Property="MinWidth" Value="40" />
+      <Setter Property="MinHeight" Value="40" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="20" />
+      <Setter Property="Background" Value="{DynamicResource ThemeButtonRestBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeButtonRestBrush}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.themeIcon:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ThemeButtonHoverBrush}" />
+    </Style>
+    <Style Selector="Button.themeIcon:pressed">
+      <Setter Property="Background" Value="{DynamicResource ThemeButtonPressedBrush}" />
     </Style>
     <Style Selector="CheckBox">
       <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
@@ -92,17 +117,34 @@
 
           <Button x:Name="ThemeToggleBtn"
                   Grid.Column="1"
-                  Content="&#xE706;"
-                  Width="36"
-                  MinWidth="36"
-                  MinHeight="36"
-                  Padding="0"
+                  Classes="themeIcon"
                   Margin="0,0,12,0"
-                  Background="Transparent"
-                  BorderBrush="Transparent"
-                  FontFamily="Segoe Fluent Icons"
-                  FontSize="16"
-                  ToolTip.Tip="切换到浅色模式" />
+                  Focusable="False"
+                  VerticalAlignment="Center"
+                  ToolTip.Tip="切换到浅色模式">
+            <Canvas Width="20"
+                    Height="20"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+              <Path x:Name="ThemeSunIcon"
+                    Data="M10,3.2 L10,1.2 M10,18.8 L10,16.8 M3.2,10 L1.2,10 M18.8,10 L16.8,10 M5.2,5.2 L3.8,3.8 M16.2,16.2 L14.8,14.8 M14.8,5.2 L16.2,3.8 M3.8,16.2 L5.2,14.8"
+                    Stroke="{DynamicResource PrimaryTextBrush}"
+                    StrokeThickness="1.9"
+                    StrokeLineCap="Round"
+                    StrokeJoin="Round" />
+              <Ellipse x:Name="ThemeSunCircle"
+                       Width="7"
+                       Height="7"
+                       Canvas.Left="6.5"
+                       Canvas.Top="6.5"
+                       Stroke="{DynamicResource PrimaryTextBrush}"
+                       StrokeThickness="1.9" />
+              <Path x:Name="ThemeMoonIcon"
+                    Data="M16.6,12.7 C15.2,15 12.5,16.3 9.7,15.9 C6.3,15.4 3.7,12.6 3.4,9.2 C3.2,6.4 4.6,3.9 6.9,2.5 C6.4,3.8 6.4,5.2 6.9,6.5 C7.7,8.9 9.7,10.9 12.2,11.7 C13.7,12.1 15.3,12 16.6,11.3 C16.7,11.8 16.7,12.3 16.6,12.7 Z"
+                    Fill="{DynamicResource PrimaryTextBrush}"
+                    IsVisible="False" />
+            </Canvas>
+          </Button>
 
           <Border Grid.Column="2"
                   Background="{DynamicResource InsetSurfaceBrush}"
@@ -279,10 +321,11 @@
               <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="运行输出"
                            FontSize="13"
-                           FontWeight="SemiBold" />
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource OutputTextBrush}" />
                 <TextBlock Text="报告会区分需创建、已存在、过期跳过和冲突。"
                            FontSize="12"
-                           Foreground="{DynamicResource MutedTextBrush}"
+                           Foreground="{DynamicResource OutputMutedTextBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
               <Border Grid.Column="1"
@@ -293,7 +336,7 @@
                 <TextBlock Text="LOG"
                            FontSize="11"
                            FontWeight="SemiBold"
-                           Foreground="{DynamicResource SecondaryTextBrush}" />
+                           Foreground="{DynamicResource OutputMutedTextBrush}" />
               </Border>
             </Grid>
 
@@ -301,7 +344,7 @@
                      x:Name="OutputBox"
                      MinHeight="0"
                      Background="{DynamicResource OutputInputBrush}"
-                     Foreground="{DynamicResource PrimaryTextBrush}"
+                     Foreground="{DynamicResource OutputTextBrush}"
                      FontFamily="Cascadia Code,Consolas,monospace"
                      FontSize="13"
                      BorderBrush="{DynamicResource BorderBrushSoft}"

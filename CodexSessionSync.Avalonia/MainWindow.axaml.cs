@@ -10,13 +10,13 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using CodexSessionSync.Core;
+using ShapeEllipse = Avalonia.Controls.Shapes.Ellipse;
+using ShapePath = Avalonia.Controls.Shapes.Path;
 
 namespace CodexSessionSync.Avalonia;
 
 public partial class MainWindow : Window
 {
-    private const string SwitchToLightGlyph = "\uE706";
-    private const string SwitchToDarkGlyph = "\uE708";
     private bool _isLightTheme;
 
     private TextBox _codexHomeBox = null!;
@@ -33,6 +33,9 @@ public partial class MainWindow : Window
     private Button _applyBtn = null!;
     private Button _defaultsBtn = null!;
     private Button _themeToggleBtn = null!;
+    private ShapePath _themeSunIcon = null!;
+    private ShapeEllipse _themeSunCircle = null!;
+    private ShapePath _themeMoonIcon = null!;
     private CheckBox _confirmCheck = null!;
     private TextBox _outputBox = null!;
     private TextBlock _statusLabel = null!;
@@ -62,6 +65,9 @@ public partial class MainWindow : Window
         _applyBtn = this.FindControl<Button>("ApplyBtn")!;
         _defaultsBtn = this.FindControl<Button>("DefaultsBtn")!;
         _themeToggleBtn = this.FindControl<Button>("ThemeToggleBtn")!;
+        _themeSunIcon = this.FindControl<ShapePath>("ThemeSunIcon")!;
+        _themeSunCircle = this.FindControl<ShapeEllipse>("ThemeSunCircle")!;
+        _themeMoonIcon = this.FindControl<ShapePath>("ThemeMoonIcon")!;
         _confirmCheck = this.FindControl<CheckBox>("ConfirmCheck")!;
         _outputBox = this.FindControl<TextBox>("OutputBox")!;
         _statusLabel = this.FindControl<TextBlock>("StatusLabel")!;
@@ -114,7 +120,9 @@ public partial class MainWindow : Window
     {
         _isLightTheme = isLightTheme;
         RequestedThemeVariant = isLightTheme ? ThemeVariant.Light : ThemeVariant.Dark;
-        _themeToggleBtn.Content = isLightTheme ? SwitchToDarkGlyph : SwitchToLightGlyph;
+        _themeSunIcon.IsVisible = !isLightTheme;
+        _themeSunCircle.IsVisible = !isLightTheme;
+        _themeMoonIcon.IsVisible = isLightTheme;
         ToolTip.SetTip(_themeToggleBtn, isLightTheme ? "切换到深色模式" : "切换到浅色模式");
 
         if (isLightTheme)
@@ -129,7 +137,12 @@ public partial class MainWindow : Window
             SetBrush("PrimaryTextBrush", "#101828");
             SetBrush("SecondaryTextBrush", "#526173");
             SetBrush("MutedTextBrush", "#667085");
+            SetBrush("OutputTextBrush", "#EEF4FF");
+            SetBrush("OutputMutedTextBrush", "#AFC3DF");
             SetBrush("ButtonSurfaceBrush", "#EEF2F7");
+            SetBrush("ThemeButtonRestBrush", "#01000000");
+            SetBrush("ThemeButtonHoverBrush", "#120B1220");
+            SetBrush("ThemeButtonPressedBrush", "#1F3A86FF");
         }
         else
         {
@@ -143,10 +156,15 @@ public partial class MainWindow : Window
             SetBrush("PrimaryTextBrush", "#EEF4FF");
             SetBrush("SecondaryTextBrush", "#B7C4D8");
             SetBrush("MutedTextBrush", "#96A6BD");
+            SetBrush("OutputTextBrush", "#EEF4FF");
+            SetBrush("OutputMutedTextBrush", "#AFC3DF");
             SetBrush("ButtonSurfaceBrush", "#18253A");
+            SetBrush("ThemeButtonRestBrush", "#01000000");
+            SetBrush("ThemeButtonHoverBrush", "#18FFFFFF");
+            SetBrush("ThemeButtonPressedBrush", "#263A86FF");
         }
 
-        _outputBox.Foreground = Brush.Parse("#E4E7EC");
+        _outputBox.Foreground = Brush.Parse("#EEF4FF");
         UpdatePillVisuals();
     }
 
