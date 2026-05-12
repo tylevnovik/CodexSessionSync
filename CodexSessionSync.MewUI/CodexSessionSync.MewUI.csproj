@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>CodexSessionSync.MewUI</RootNamespace>
+    <AssemblyName>CodexSessionSync.MewUI</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>full</TrimMode>
+    <IsAotCompatible>true</IsAotCompatible>
+    <PublishSingleFile>true</PublishSingleFile>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <StripSymbols>true</StripSymbols>
+    <IlcGeneratePdb>false</IlcGeneratePdb>
+    <IlcGenerateMapFile>false</IlcGenerateMapFile>
+
+    <MewUIBackend>Direct2D</MewUIBackend>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aprillz.MewUI.Windows" Version="0.15.2" />
+    <ProjectReference Include="..\CodexSessionSync.Core\CodexSessionSync.Core.csproj" />
+  </ItemGroup>
+
+</Project>

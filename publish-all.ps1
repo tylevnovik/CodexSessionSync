@@ -38,6 +38,7 @@ $variants = @{
 # Project and variant matrix.
 # Rule: if AOT available, publish only AOT. Otherwise, publish self-contained.
 $matrix = @(
+    @{ Project = "CodexSessionSync.MewUI";    Csproj = "CodexSessionSync.MewUI\CodexSessionSync.MewUI.csproj";       Variants = @("aot") }
     @{ Project = "CodexSessionSync.Avalonia"; Csproj = "CodexSessionSync.Avalonia\CodexSessionSync.Avalonia.csproj"; Variants = @("aot") }
     @{ Project = "CodexSessionSync.Tui";      Csproj = "CodexSessionSync.Tui\CodexSessionSync.Tui.csproj";           Variants = @("aot") }
     @{ Project = "CodexSessionSync.WinForms"; Csproj = "CodexSessionSync.WinForms\CodexSessionSync.WinForms.csproj"; Variants = @("aot") }
