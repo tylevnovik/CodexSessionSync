@@ -151,8 +151,8 @@ public partial class MainWindow : FluentWindow
         _isLightTheme = isLightTheme;
         var theme = isLightTheme ? ApplicationTheme.Light : ApplicationTheme.Dark;
 
-        ApplicationThemeManager.Apply(theme, WindowBackdropType.Mica, true);
-        WindowBackdropType = WindowBackdropType.Mica;
+        ApplicationThemeManager.Apply(theme, WindowBackdropType.Acrylic, true);
+        WindowBackdropType = WindowBackdropType.Acrylic;
         AppTitleBar.ApplicationTheme = theme;
 
         ThemeToggleIcon.Symbol = isLightTheme ? SymbolRegular.WeatherMoon24 : SymbolRegular.WeatherSunny24;
@@ -160,22 +160,26 @@ public partial class MainWindow : FluentWindow
 
         if (isLightTheme)
         {
-            SetBrush("AppBackgroundBrush", "#F6F3F6FA");
+            SetBrush("AppBackgroundBrush", "#72F3F6FA");
+            SetBrush("PanelBackgroundBrush", "#B8FFFFFF");
+            SetBrush("PanelBorderBrush", "#55AEB8C4");
             SetBrush("PrimaryTextBrush", "#101828");
             SetBrush("SecondaryTextBrush", "#5F6B7A");
-            SetBrush("OutputBackgroundBrush", "#FFFFFFFF");
+            SetBrush("OutputBackgroundBrush", "#AAFFFFFF");
             SetBrush("OutputForegroundBrush", "#101828");
         }
         else
         {
-            SetBrush("AppBackgroundBrush", "#E6101117");
+            SetBrush("AppBackgroundBrush", "#66101117");
+            SetBrush("PanelBackgroundBrush", "#801B1F2A");
+            SetBrush("PanelBorderBrush", "#2FFFFFFF");
             SetBrush("PrimaryTextBrush", "#F8FAFC");
             SetBrush("SecondaryTextBrush", "#B9C0CC");
-            SetBrush("OutputBackgroundBrush", "#D9111520");
+            SetBrush("OutputBackgroundBrush", "#70111520");
             SetBrush("OutputForegroundBrush", "#F8FAFC");
         }
 
-        Background = BrushResource("AppBackgroundBrush");
+        Background = Brushes.Transparent;
     }
 
     private SolidColorBrush BrushResource(string key) => (SolidColorBrush)FindResource(key);

@@ -142,22 +142,26 @@ public partial class MainWindow : Window
 
         if (isLightTheme)
         {
-            SetBrush("AppBackgroundBrush", "#F6F3F6FA");
+            SetBrush("AppBackgroundBrush", "#72F3F6FA");
+            SetBrush("PanelBackgroundBrush", "#B8FFFFFF");
+            SetBrush("PanelBorderBrush", "#55AEB8C4");
             SetBrush("PrimaryTextBrush", "#101828");
             SetBrush("SecondaryTextBrush", "#5F6B7A");
-            SetBrush("OutputBackgroundBrush", "#FFFFFFFF");
+            SetBrush("OutputBackgroundBrush", "#AAFFFFFF");
             SetBrush("OutputForegroundBrush", "#101828");
         }
         else
         {
-            SetBrush("AppBackgroundBrush", "#E6101117");
+            SetBrush("AppBackgroundBrush", "#66101117");
+            SetBrush("PanelBackgroundBrush", "#801B1F2A");
+            SetBrush("PanelBorderBrush", "#2FFFFFFF");
             SetBrush("PrimaryTextBrush", "#F8FAFC");
             SetBrush("SecondaryTextBrush", "#B9C0CC");
-            SetBrush("OutputBackgroundBrush", "#D9111520");
+            SetBrush("OutputBackgroundBrush", "#70111520");
             SetBrush("OutputForegroundBrush", "#F8FAFC");
         }
 
-        Background = BrushResource("AppBackgroundBrush");
+        Background = Brushes.Transparent;
         RootGrid.Background = BrushResource("AppBackgroundBrush");
     }
 

@@ -9,15 +9,17 @@
         MinHeight="620"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI, Microsoft YaHei UI"
-        Background="{DynamicResource AppBackgroundBrush}"
+        Background="Transparent"
         ui:ThemeManager.IsThemeAware="True"
         ui:WindowHelper.UseModernWindowStyle="True"
-        ui:WindowHelper.SystemBackdropType="Mica">
+        ui:WindowHelper.SystemBackdropType="Acrylic">
     <Window.Resources>
-        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#E6101117"/>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#66101117"/>
+        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#801B1F2A"/>
+        <SolidColorBrush x:Key="PanelBorderBrush" Color="#2FFFFFFF"/>
         <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F8FAFC"/>
         <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B9C0CC"/>
-        <SolidColorBrush x:Key="OutputBackgroundBrush" Color="#D9111520"/>
+        <SolidColorBrush x:Key="OutputBackgroundBrush" Color="#70111520"/>
         <SolidColorBrush x:Key="OutputForegroundBrush" Color="#F8FAFC"/>
 
         <Style x:Key="HeaderTitleStyle" TargetType="TextBlock">
@@ -137,6 +139,8 @@
                                  Description="Codex Home 和写入备份目录"
                                  ContentAlignment="Vertical"
                                  IsClickEnabled="False"
+                                 Background="{DynamicResource PanelBackgroundBrush}"
+                                 BorderBrush="{DynamicResource PanelBorderBrush}"
                                  Margin="0,0,0,10">
                     <ui:SettingsCard.HeaderIcon>
                         <ui:FontIcon Glyph="&#xE8B7;" FontFamily="Segoe Fluent Icons"/>
@@ -168,6 +172,8 @@
                                  Description="选择同步策略，provider 字段用于单向同步和迁移。"
                                  ContentAlignment="Vertical"
                                  IsClickEnabled="False"
+                                 Background="{DynamicResource PanelBackgroundBrush}"
+                                 BorderBrush="{DynamicResource PanelBorderBrush}"
                                  Margin="0,0,0,10">
                     <ui:SettingsCard.HeaderIcon>
                         <ui:FontIcon Glyph="&#xE895;" FontFamily="Segoe Fluent Icons"/>
@@ -221,6 +227,8 @@
                                  Description="默认只预览；打开写入确认后才允许修改文件和 SQLite。"
                                  ContentAlignment="Vertical"
                                  IsClickEnabled="False"
+                                 Background="{DynamicResource PanelBackgroundBrush}"
+                                 BorderBrush="{DynamicResource PanelBorderBrush}"
                                  Margin="0,0,0,10">
                     <ui:SettingsCard.HeaderIcon>
                         <ui:FontIcon Glyph="&#xE7C3;" FontFamily="Segoe Fluent Icons"/>
@@ -271,6 +279,8 @@
                 <ui:SettingsCard Header="输出"
                                  Description="预览和执行结果"
                                  ContentAlignment="Vertical"
+                                 Background="{DynamicResource PanelBackgroundBrush}"
+                                 BorderBrush="{DynamicResource PanelBorderBrush}"
                                  IsClickEnabled="False">
                     <ui:SettingsCard.HeaderIcon>
                         <ui:FontIcon Glyph="&#xE756;" FontFamily="Segoe Fluent Icons"/>
