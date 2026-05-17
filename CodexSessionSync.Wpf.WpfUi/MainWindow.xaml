@@ -1,0 +1,330 @@
+<ui:FluentWindow x:Class="CodexSessionSync.WpfUi.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 Title="Codex 会话同步工具 - WPF UI"
+                 Width="860"
+                 Height="760"
+                 MinWidth="720"
+                 MinHeight="620"
+                 WindowStartupLocation="CenterScreen"
+                 FontFamily="Segoe UI, Microsoft YaHei UI"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round"
+                 Background="{DynamicResource AppBackgroundBrush}">
+    <ui:FluentWindow.Resources>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#E6101117"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B9C0CC"/>
+        <SolidColorBrush x:Key="OutputBackgroundBrush" Color="#D9111520"/>
+        <SolidColorBrush x:Key="OutputForegroundBrush" Color="#F8FAFC"/>
+
+        <Style x:Key="HeaderTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+
+        <Style x:Key="HeaderSubtitleStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,5,0,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+
+        <Style x:Key="HelpTextStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="OutputTextBoxStyle" TargetType="ui:TextBox">
+            <Setter Property="MinHeight" Value="170"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="FontFamily" Value="Consolas, Cascadia Mono"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource OutputForegroundBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource OutputBackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <Grid Background="{DynamicResource AppBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar x:Name="AppTitleBar"
+                     Grid.Row="0"
+                     Title="Codex Session Sync"
+                     ShowMaximize="True"
+                     ShowMinimize="True">
+            <ui:TitleBar.Icon>
+                <ui:SymbolIcon Symbol="ArrowSync24"/>
+            </ui:TitleBar.Icon>
+            <ui:TitleBar.TrailingContent>
+                <ui:Button x:Name="ThemeToggleBtn"
+                           Width="38"
+                           Height="34"
+                           MinWidth="38"
+                           Padding="0"
+                           Margin="0,0,10,0"
+                           Appearance="Transparent"
+                           ToolTip="切换浅色/深色"
+                           Click="OnThemeToggleClick">
+                    <ui:Button.Icon>
+                        <ui:SymbolIcon x:Name="ThemeToggleIcon" Symbol="WeatherSunny24"/>
+                    </ui:Button.Icon>
+                </ui:Button>
+            </ui:TitleBar.TrailingContent>
+        </ui:TitleBar>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel x:Name="RootPanel"
+                        Margin="24,12,24,24">
+                <Grid Margin="0,0,0,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="Codex 会话同步工具" Style="{StaticResource HeaderTitleStyle}"/>
+                        <TextBlock Text="先预览同步计划，再确认写入 JSONL 与 SQLite。"
+                                   Style="{StaticResource HeaderSubtitleStyle}"/>
+                    </StackPanel>
+
+                    <ui:InfoBar x:Name="StatusInfo"
+                                Grid.Row="1"
+                                Margin="0,16,0,0"
+                                Title="状态"
+                                Message="准备就绪"
+                                Severity="Informational"
+                                IsOpen="True"
+                                IsClosable="False"/>
+                </Grid>
+
+                <ui:Card Padding="18"
+                         Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="14"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" MinWidth="0">
+                            <TextBlock Text="Codex Home" Style="{StaticResource FieldLabelStyle}"/>
+                            <ui:TextBox x:Name="CodexHomeBox"
+                                        Height="36"
+                                        MinWidth="0"
+                                        PlaceholderText="Codex Home"
+                                        ClearButtonEnabled="True"
+                                        Icon="{ui:SymbolIcon Home24}"/>
+                            <TextBlock Text="默认读取 CODEX_HOME 或当前用户的 .codex。"
+                                       Style="{StaticResource HelpTextStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" MinWidth="0">
+                            <TextBlock Text="备份目录" Style="{StaticResource FieldLabelStyle}"/>
+                            <ui:TextBox x:Name="BackupDirBox"
+                                        Height="36"
+                                        MinWidth="0"
+                                        PlaceholderText="备份目录"
+                                        ClearButtonEnabled="True"
+                                        Icon="{ui:SymbolIcon Folder24}"/>
+                            <TextBlock Text="执行写入时建议填写，例如桌面上的 codex-session-sync-backup。"
+                                       Style="{StaticResource HelpTextStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </ui:Card>
+
+                <ui:Card Padding="18"
+                         Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="14"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="同步模式"
+                                   Style="{StaticResource FieldLabelStyle}"/>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ui:Button x:Name="ModeMutualBtn"
+                                       Grid.Column="0"
+                                       MinHeight="42"
+                                       HorizontalAlignment="Stretch"
+                                       Content="全供应商互同步"
+                                       Appearance="Primary"
+                                       Click="OnModeMutualClick">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Symbol="ArrowSync24"/>
+                                </ui:Button.Icon>
+                            </ui:Button>
+
+                            <ui:Button x:Name="ModeOpenAiBtn"
+                                       Grid.Column="2"
+                                       MinHeight="42"
+                                       HorizontalAlignment="Stretch"
+                                       Content="OpenAI 到全部"
+                                       Appearance="Secondary"
+                                       Click="OnModeOpenAiClick">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Symbol="CloudSync24"/>
+                                </ui:Button.Icon>
+                            </ui:Button>
+
+                            <ui:Button x:Name="ModeMigrateBtn"
+                                       Grid.Column="4"
+                                       MinHeight="42"
+                                       HorizontalAlignment="Stretch"
+                                       Content="单目标迁移"
+                                       Appearance="Secondary"
+                                       Click="OnModeMigrateClick">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Symbol="Database24"/>
+                                </ui:Button.Icon>
+                            </ui:Button>
+                        </Grid>
+
+                        <TextBlock x:Name="ModeHelpText"
+                                   Grid.Row="2"
+                                   Margin="0,8,0,0"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"/>
+
+                        <Grid Grid.Row="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" MinWidth="0">
+                                <TextBlock Text="源 provider" Style="{StaticResource FieldLabelStyle}"/>
+                                <ui:TextBox x:Name="SourceProviderBox"
+                                            Text="openai"
+                                            Height="36"
+                                            MinWidth="0"
+                                            ClearButtonEnabled="True"
+                                            Icon="{ui:SymbolIcon CloudSync24}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" MinWidth="0">
+                                <TextBlock Text="目标 provider" Style="{StaticResource FieldLabelStyle}"/>
+                                <ui:TextBox x:Name="TargetProviderBox"
+                                            Text="openai"
+                                            Height="36"
+                                            MinWidth="0"
+                                            ClearButtonEnabled="True"
+                                            Icon="{ui:SymbolIcon Database24}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </ui:Card>
+
+                <ui:Card Padding="18"
+                         Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0">
+                            <TextBlock Text="写入确认" Style="{StaticResource FieldLabelStyle}"/>
+                            <ui:ToggleSwitch x:Name="ConfirmSwitch"
+                                             OffContent="仅预览"
+                                             OnContent="允许执行写入"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <ui:Button x:Name="PreviewBtn"
+                                       MinWidth="94"
+                                       Content="预览"
+                                       Appearance="Primary"
+                                       Click="OnPreviewClick">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Symbol="Eye24"/>
+                                </ui:Button.Icon>
+                            </ui:Button>
+
+                            <ui:Button x:Name="ApplyBtn"
+                                       MinWidth="108"
+                                       Margin="8,0,0,0"
+                                       Content="执行写入"
+                                       Appearance="Danger"
+                                       Click="OnApplyClick">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Symbol="DocumentSave24"/>
+                                </ui:Button.Icon>
+                            </ui:Button>
+
+                            <ui:Button x:Name="DefaultsBtn"
+                                       MinWidth="108"
+                                       Margin="8,0,0,0"
+                                       Content="默认路径"
+                                       Appearance="Secondary"
+                                       Click="OnResetDefaults">
+                                <ui:Button.Icon>
+                                    <ui:SymbolIcon Symbol="ArrowClockwise20"/>
+                                </ui:Button.Icon>
+                            </ui:Button>
+                        </StackPanel>
+                    </Grid>
+                </ui:Card>
+
+                <ui:Card Padding="18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="输出"
+                                   Style="{StaticResource FieldLabelStyle}"/>
+
+                        <ui:TextBox x:Name="OutputBox"
+                                    Grid.Row="2"
+                                    Text="等待运行。"
+                                    Style="{StaticResource OutputTextBoxStyle}"/>
+                    </Grid>
+                </ui:Card>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ui:FluentWindow>

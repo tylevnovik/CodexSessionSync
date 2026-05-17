@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace CodexSessionSync.Wpf;
+namespace CodexSessionSync.WpfUi;
 
 public partial class App : Application
 {

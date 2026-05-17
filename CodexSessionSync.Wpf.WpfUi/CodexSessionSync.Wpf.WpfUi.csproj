@@ -13,7 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CodexSessionSync.Core\CodexSessionSync.Core.csproj" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodexSessionSync.Wpf.Shared\CodexSessionSync.Wpf.Shared.csproj" />
   </ItemGroup>
 
 </Project>

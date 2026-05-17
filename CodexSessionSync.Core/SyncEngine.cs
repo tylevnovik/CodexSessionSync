@@ -14,6 +14,8 @@ public class SyncEngine
 {
     private static readonly Regex StateDbPattern = new(@"^state_(\d+)\.sqlite$", RegexOptions.Compiled);
     private static readonly Regex SanitizePattern = new(@"[^A-Za-z0-9._-]+", RegexOptions.Compiled);
+    private static readonly Regex InputImagePattern = new("\"type\"\\s*:\\s*\"input_image\"", RegexOptions.Compiled);
+    private const int TimiCcImageRiskBytes = 700 * 1024;
 
     public static string DefaultCodexHome()
     {
@@ -119,11 +121,10 @@ public class SyncEngine
         string text;
         try
         {
-            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var sr = new StreamReader(fs, Encoding.UTF8);
-            text = sr.ReadToEnd();
+            text = ReadAllTextShared(path);
         }
         catch (IOException) { return (null, 0); }
+        catch (UnauthorizedAccessException) { return (null, 0); }
         var lines = text.Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
@@ -239,7 +240,7 @@ public class SyncEngine
 
     public static string RenderMirrorJsonl(MirrorPlan plan)
     {
-        var lines = File.ReadAllLines(plan.SourcePath);
+        var lines = ReadAllLinesShared(plan.SourcePath);
         var rendered = new List<string>();
         bool metaSeen = false;
         var options = new JsonSerializerOptions { WriteIndented = false };
@@ -286,7 +287,7 @@ public class SyncEngine
             throw new InvalidOperationException($"No session_meta found in source: {plan.SourcePath}");
 
         var result = string.Join("\n", rendered);
-        if (lines.Length > 0 && (lines[^1].EndsWith('\n') || lines[^1].EndsWith("\r\n"))) result += "\n";
+        if (lines.Count > 0 && (lines[^1].EndsWith('\n') || lines[^1].EndsWith("\r\n"))) result += "\n";
         return result;
     }
 
@@ -322,6 +323,7 @@ public class SyncEngine
 
     public static void SyncRolloutMirrors(List<MirrorPlan> plans, bool apply, SyncReport report)
     {
+        var emittedRiskWarnings = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var plan in plans)
         {
             if (File.Exists(plan.MirrorPath))
@@ -333,8 +335,10 @@ public class SyncEngine
                 }
 
                 var rendered = RenderMirrorJsonl(plan);
+                AppendMirrorRiskWarnings(plan, report, emittedRiskWarnings);
+                var existingText = NormalizeLineEndings(ReadAllTextShared(plan.MirrorPath));
                 var normRendered = NormalizeJsonlLines(rendered);
-                var normExisting = NormalizeJsonlLines(NormalizeLineEndings(File.ReadAllText(plan.MirrorPath)));
+                var normExisting = NormalizeJsonlLines(existingText);
                 if (normRendered == normExisting)
                 {
                     report.MirrorFilesExisting++;
@@ -358,6 +362,7 @@ public class SyncEngine
                 continue;
             }
 
+            AppendMirrorRiskWarnings(plan, report, emittedRiskWarnings);
             report.MirrorFilesNeeded++;
             report.ProviderCountsAfter[plan.TargetProvider] = report.ProviderCountsAfter.GetValueOrDefault(plan.TargetProvider) + 1;
             if (!apply) continue;
@@ -366,6 +371,57 @@ public class SyncEngine
             File.WriteAllText(plan.MirrorPath, RenderMirrorJsonl(plan), new UTF8Encoding(false));
             report.MirrorFilesCreated++;
         }
+    }
+
+    private static void AppendMirrorRiskWarnings(MirrorPlan plan, SyncReport report, HashSet<string> emitted)
+    {
+        if (!string.Equals(plan.TargetProvider, "timi_cc", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var key = $"{plan.SourceId}:{plan.TargetProvider}";
+        if (!emitted.Add(key))
+            return;
+
+        string sourceText;
+        try
+        {
+            sourceText = ReadAllTextShared(plan.SourcePath);
+        }
+        catch
+        {
+            return;
+        }
+
+        var imageInputs = InputImagePattern.Matches(sourceText).Count;
+        if (imageInputs == 0)
+            return;
+
+        var bytes = Encoding.UTF8.GetByteCount(sourceText);
+        if (bytes < TimiCcImageRiskBytes)
+            return;
+
+        var sizeKb = (int)Math.Round(bytes / 1024.0);
+        report.RiskWarnings.Add(
+            $"- {Path.GetFileName(plan.SourcePath)} -> {plan.TargetProvider}: contains {imageInputs} image input(s) and about {sizeKb} KB of source JSONL. Low-cost timi_cc relay pools may reject image-heavy context with 502; official or higher-tier pools can behave differently."
+        );
+    }
+
+    private static string ReadAllTextShared(string path)
+    {
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var sr = new StreamReader(fs, Encoding.UTF8);
+        return sr.ReadToEnd();
+    }
+
+    private static List<string> ReadAllLinesShared(string path)
+    {
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var sr = new StreamReader(fs, Encoding.UTF8);
+        var lines = new List<string>();
+        string? line;
+        while ((line = sr.ReadLine()) != null)
+            lines.Add(line);
+        return lines;
     }
 
     private static string NormalizeLineEndings(string text)

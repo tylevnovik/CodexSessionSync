@@ -42,6 +42,7 @@ public class SyncReport
     public int SqliteSourceRowsMissing { get; set; }
     public Dictionary<string, int> ProviderCountsBefore { get; set; } = new();
     public Dictionary<string, int> ProviderCountsAfter { get; set; } = new();
+    public List<string> RiskWarnings { get; set; } = new();
 }
 
 public class SqliteReport

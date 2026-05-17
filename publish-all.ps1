@@ -44,9 +44,10 @@ $matrix = @(
     @{ Project = "CodexSessionSync.WinForms"; Csproj = "CodexSessionSync.WinForms\CodexSessionSync.WinForms.csproj"; Variants = @("aot") }
 )
 
-# WPF cannot do AOT, so publish self-contained only.
+# Fluent WPF variants cannot do AOT, so publish self-contained only.
 $scOnly = @(
-    @{ Project = "CodexSessionSync.Wpf"; Csproj = "CodexSessionSync.Wpf\CodexSessionSync.Wpf.csproj"; OutDir = "dist\CodexSessionSync.Wpf" }
+    @{ Project = "CodexSessionSync.Wpf.Inkore"; Csproj = "CodexSessionSync.Wpf.Inkore\CodexSessionSync.Wpf.Inkore.csproj"; OutDir = "dist\CodexSessionSync.Wpf.Inkore" }
+    @{ Project = "CodexSessionSync.Wpf.WpfUi";  Csproj = "CodexSessionSync.Wpf.WpfUi\CodexSessionSync.Wpf.WpfUi.csproj";   OutDir = "dist\CodexSessionSync.Wpf.WpfUi" }
 )
 
 # WinUI supports NativeAOT, but Windows App SDK self-contained deployment is a folder.

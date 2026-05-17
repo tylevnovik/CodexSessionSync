@@ -1,0 +1,285 @@
+<Window x:Class="CodexSessionSync.Wpf.Inkore.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+        Title="Codex 会话同步工具 - iNKORE"
+        Width="860"
+        Height="760"
+        MinWidth="720"
+        MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI, Microsoft YaHei UI"
+        Background="{DynamicResource AppBackgroundBrush}"
+        ui:ThemeManager.IsThemeAware="True"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        ui:WindowHelper.SystemBackdropType="Mica">
+    <Window.Resources>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#E6101117"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B9C0CC"/>
+        <SolidColorBrush x:Key="OutputBackgroundBrush" Color="#D9111520"/>
+        <SolidColorBrush x:Key="OutputForegroundBrush" Color="#F8FAFC"/>
+
+        <Style x:Key="HeaderTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+
+        <Style x:Key="HeaderSubtitleStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,5,0,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+
+        <Style x:Key="HelpTextStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="FieldTextBoxStyle"
+               TargetType="TextBox"
+               BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+        </Style>
+
+        <Style x:Key="OutputTextBoxStyle"
+               TargetType="TextBox"
+               BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="MinHeight" Value="170"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="FontFamily" Value="Consolas, Cascadia Mono"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource OutputForegroundBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource OutputBackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="RootGrid"
+          Background="{DynamicResource AppBackgroundBrush}"
+          ui:ThemeManager.RequestedTheme="Dark">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="24,20,24,12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Codex 会话同步工具" Style="{StaticResource HeaderTitleStyle}"/>
+                <TextBlock Text="先预览同步计划，再确认写入 JSONL 与 SQLite。"
+                           Style="{StaticResource HeaderSubtitleStyle}"/>
+            </StackPanel>
+
+            <ui:AppBarButton x:Name="ThemeToggleBtn"
+                             Grid.Row="0"
+                             Grid.Column="1"
+                             Width="52"
+                             Height="44"
+                             Margin="12,0,0,0"
+                             Label=""
+                             ToolTip="切换浅色/深色"
+                             Click="OnThemeToggleClick">
+                <ui:AppBarButton.Icon>
+                    <ui:FontIcon x:Name="ThemeToggleIcon"
+                                 Glyph="&#xE706;"
+                                 FontFamily="Segoe Fluent Icons"/>
+                </ui:AppBarButton.Icon>
+            </ui:AppBarButton>
+
+            <ui:InfoBar x:Name="StatusInfo"
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        Margin="0,16,0,0"
+                        Title="状态"
+                        Message="准备就绪"
+                        Severity="Informational"
+                        IsOpen="True"
+                        IsClosable="False"/>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="24,0,24,24">
+                <ui:SettingsCard Header="路径"
+                                 Description="Codex Home 和写入备份目录"
+                                 ContentAlignment="Vertical"
+                                 IsClickEnabled="False"
+                                 Margin="0,0,0,10">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Glyph="&#xE8B7;" FontFamily="Segoe Fluent Icons"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="14"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" MinWidth="0">
+                            <TextBlock Text="Codex Home" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox x:Name="CodexHomeBox" Style="{StaticResource FieldTextBoxStyle}"/>
+                            <TextBlock Text="默认读取 CODEX_HOME 或当前用户的 .codex。"
+                                       Style="{StaticResource HelpTextStyle}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" MinWidth="0">
+                            <TextBlock Text="备份目录" Style="{StaticResource FieldLabelStyle}"/>
+                            <TextBox x:Name="BackupDirBox" Style="{StaticResource FieldTextBoxStyle}"/>
+                            <TextBlock Text="执行写入时建议填写，例如桌面上的 codex-session-sync-backup。"
+                                       Style="{StaticResource HelpTextStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </ui:SettingsCard>
+
+                <ui:SettingsCard Header="同步模式"
+                                 Description="选择同步策略，provider 字段用于单向同步和迁移。"
+                                 ContentAlignment="Vertical"
+                                 IsClickEnabled="False"
+                                 Margin="0,0,0,10">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Glyph="&#xE895;" FontFamily="Segoe Fluent Icons"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="14"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ui:RadioButtons x:Name="ModeSelector"
+                                         Grid.Row="0"
+                                         MaxColumns="3"
+                                         SelectedIndex="0"
+                                         SelectionChanged="OnModeSelectionChanged"/>
+
+                        <TextBlock x:Name="ModeHelpText"
+                                   Grid.Row="1"
+                                   Margin="0,8,0,0"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"/>
+
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" MinWidth="0">
+                                <TextBlock Text="源 provider" Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox x:Name="SourceProviderBox"
+                                         Text="openai"
+                                         Style="{StaticResource FieldTextBoxStyle}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" MinWidth="0">
+                                <TextBlock Text="目标 provider" Style="{StaticResource FieldLabelStyle}"/>
+                                <TextBox x:Name="TargetProviderBox"
+                                         Text="openai"
+                                         Style="{StaticResource FieldTextBoxStyle}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </ui:SettingsCard>
+
+                <ui:SettingsCard Header="操作"
+                                 Description="默认只预览；打开写入确认后才允许修改文件和 SQLite。"
+                                 ContentAlignment="Vertical"
+                                 IsClickEnabled="False"
+                                 Margin="0,0,0,10">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Glyph="&#xE7C3;" FontFamily="Segoe Fluent Icons"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ui:ToggleSwitch x:Name="ConfirmSwitch"
+                                         Grid.Row="0"
+                                         Header="写入确认"
+                                         OffContent="仅预览"
+                                         OnContent="允许执行写入"/>
+
+                        <ui:CommandBar Grid.Row="1"
+                                       Margin="0,12,0,0"
+                                       DefaultLabelPosition="Right"
+                                       OverflowButtonVisibility="Collapsed">
+                            <ui:CommandBar.PrimaryCommands>
+                                <ui:AppBarButton x:Name="PreviewBtn"
+                                                 Label="预览"
+                                                 Click="OnPreviewClick">
+                                    <ui:AppBarButton.Icon>
+                                        <ui:FontIcon Glyph="&#xE8A1;" FontFamily="Segoe Fluent Icons"/>
+                                    </ui:AppBarButton.Icon>
+                                </ui:AppBarButton>
+                                <ui:AppBarButton x:Name="ApplyBtn"
+                                                 Label="执行写入"
+                                                 Click="OnApplyClick">
+                                    <ui:AppBarButton.Icon>
+                                        <ui:FontIcon Glyph="&#xE74E;" FontFamily="Segoe Fluent Icons"/>
+                                    </ui:AppBarButton.Icon>
+                                </ui:AppBarButton>
+                                <ui:AppBarButton x:Name="DefaultsBtn"
+                                                 Label="默认路径"
+                                                 Click="OnResetDefaults">
+                                    <ui:AppBarButton.Icon>
+                                        <ui:FontIcon Glyph="&#xE72C;" FontFamily="Segoe Fluent Icons"/>
+                                    </ui:AppBarButton.Icon>
+                                </ui:AppBarButton>
+                            </ui:CommandBar.PrimaryCommands>
+                        </ui:CommandBar>
+                    </Grid>
+                </ui:SettingsCard>
+
+                <ui:SettingsCard Header="输出"
+                                 Description="预览和执行结果"
+                                 ContentAlignment="Vertical"
+                                 IsClickEnabled="False">
+                    <ui:SettingsCard.HeaderIcon>
+                        <ui:FontIcon Glyph="&#xE756;" FontFamily="Segoe Fluent Icons"/>
+                    </ui:SettingsCard.HeaderIcon>
+                    <TextBox x:Name="OutputBox"
+                             Text="等待运行。"
+                             Style="{StaticResource OutputTextBoxStyle}"/>
+                </ui:SettingsCard>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>
