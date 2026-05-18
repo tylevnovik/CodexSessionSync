@@ -4,18 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using CodexSessionSync.Core;
-using ShapeEllipse = Avalonia.Controls.Shapes.Ellipse;
-using ShapePath = Avalonia.Controls.Shapes.Path;
+using FluentAvalonia.UI.Controls;
+using FluentAvalonia.UI.Windowing;
 
 namespace CodexSessionSync.Avalonia;
 
-public partial class MainWindow : Window
+public partial class MainWindow : AppWindow
 {
     private bool _isLightTheme;
 
@@ -23,29 +23,24 @@ public partial class MainWindow : Window
     private TextBox _backupDirBox = null!;
     private TextBox _sourceProviderBox = null!;
     private TextBox _targetProviderBox = null!;
-    private RadioButton _modeMutual = null!;
-    private RadioButton _modeOpenAi = null!;
-    private RadioButton _modeMigrate = null!;
-    private Border _pillMutual = null!;
-    private Border _pillOpenAi = null!;
-    private Border _pillMigrate = null!;
+    private FAComboBox _modeBox = null!;
     private Button _previewBtn = null!;
     private Button _applyBtn = null!;
     private Button _defaultsBtn = null!;
     private Button _themeToggleBtn = null!;
-    private ShapePath _themeSunIcon = null!;
-    private ShapeEllipse _themeSunCircle = null!;
-    private ShapePath _themeMoonIcon = null!;
-    private CheckBox _confirmCheck = null!;
+    private SymbolIcon _themeToggleIcon = null!;
+    private TextBlock _themeToggleLabel = null!;
+    private ToggleSwitch _confirmToggle = null!;
     private TextBox _outputBox = null!;
-    private TextBlock _statusLabel = null!;
+    private InfoBar _statusInfoBar = null!;
 
     public MainWindow()
     {
         InitializeComponent();
+        ConfigureWindowChrome();
         ResetDefaults();
         ApplyTheme(isLightTheme: false);
-        UpdatePillVisuals();
+        UpdateModeFields();
     }
 
     private void InitializeComponent()
@@ -55,120 +50,95 @@ public partial class MainWindow : Window
         _backupDirBox = this.FindControl<TextBox>("BackupDirBox")!;
         _sourceProviderBox = this.FindControl<TextBox>("SourceProviderBox")!;
         _targetProviderBox = this.FindControl<TextBox>("TargetProviderBox")!;
-        _modeMutual = this.FindControl<RadioButton>("ModeMutual")!;
-        _modeOpenAi = this.FindControl<RadioButton>("ModeOpenAi")!;
-        _modeMigrate = this.FindControl<RadioButton>("ModeMigrate")!;
-        _pillMutual = this.FindControl<Border>("PillMutual")!;
-        _pillOpenAi = this.FindControl<Border>("PillOpenAi")!;
-        _pillMigrate = this.FindControl<Border>("PillMigrate")!;
+        _modeBox = this.FindControl<FAComboBox>("ModeBox")!;
         _previewBtn = this.FindControl<Button>("PreviewBtn")!;
         _applyBtn = this.FindControl<Button>("ApplyBtn")!;
         _defaultsBtn = this.FindControl<Button>("DefaultsBtn")!;
         _themeToggleBtn = this.FindControl<Button>("ThemeToggleBtn")!;
-        _themeSunIcon = this.FindControl<ShapePath>("ThemeSunIcon")!;
-        _themeSunCircle = this.FindControl<ShapeEllipse>("ThemeSunCircle")!;
-        _themeMoonIcon = this.FindControl<ShapePath>("ThemeMoonIcon")!;
-        _confirmCheck = this.FindControl<CheckBox>("ConfirmCheck")!;
+        _themeToggleIcon = this.FindControl<SymbolIcon>("ThemeToggleIcon")!;
+        _themeToggleLabel = this.FindControl<TextBlock>("ThemeToggleLabel")!;
+        _confirmToggle = this.FindControl<ToggleSwitch>("ConfirmToggle")!;
         _outputBox = this.FindControl<TextBox>("OutputBox")!;
-        _statusLabel = this.FindControl<TextBlock>("StatusLabel")!;
+        _statusInfoBar = this.FindControl<InfoBar>("StatusInfoBar")!;
 
         _previewBtn.Click += OnPreviewClick;
         _applyBtn.Click += OnApplyClick;
         _defaultsBtn.Click += OnResetDefaults;
         _themeToggleBtn.Click += OnThemeToggleClick;
-
-        _pillMutual.PointerPressed += OnPillMutualClick;
-        _pillOpenAi.PointerPressed += OnPillOpenAiClick;
-        _pillMigrate.PointerPressed += OnPillMigrateClick;
+        _modeBox.SelectionChanged += OnModeSelectionChanged;
     }
 
-    private void SelectMode(string mode)
+    private string SelectedMode()
     {
-        _modeMutual.IsChecked = mode == "mutual";
-        _modeOpenAi.IsChecked = mode == "openai";
-        _modeMigrate.IsChecked = mode == "migrate";
-
-        UpdatePillVisuals();
-    }
-
-    private void UpdatePillVisuals()
-    {
-        var activeBg = Brush.Parse(_isLightTheme ? "#E8F4FF" : "#203A5F");
-        var inactiveBg = Brush.Parse(_isLightTheme ? "#F8FAFC" : "#111A2B");
-        var activeBorder = Brush.Parse(_isLightTheme ? "#40BDF8" : "#4C8DD4");
-        var inactiveBorder = Brush.Parse(_isLightTheme ? "#C4D0DE" : "#31435D");
-
-        void StylePill(Border pill, bool active)
+        return _modeBox.SelectedIndex switch
         {
-            pill.Background = active ? activeBg : inactiveBg;
-            pill.BorderBrush = active ? activeBorder : inactiveBorder;
-            pill.BorderThickness = new global::Avalonia.Thickness(1);
-            pill.Opacity = active ? 1.0 : 0.92;
-        }
-
-        StylePill(_pillMutual, _modeMutual.IsChecked == true);
-        StylePill(_pillOpenAi, _modeOpenAi.IsChecked == true);
-        StylePill(_pillMigrate, _modeMigrate.IsChecked == true);
+            1 => "openai",
+            2 => "migrate",
+            _ => "mutual"
+        };
     }
 
-    private void OnPillMutualClick(object? sender, PointerPressedEventArgs e) => SelectMode("mutual");
-    private void OnPillOpenAiClick(object? sender, PointerPressedEventArgs e) => SelectMode("openai");
-    private void OnPillMigrateClick(object? sender, PointerPressedEventArgs e) => SelectMode("migrate");
+    private void OnModeSelectionChanged(object? sender, SelectionChangedEventArgs e) => UpdateModeFields();
+
+    private void UpdateModeFields()
+    {
+        var mode = SelectedMode();
+        _sourceProviderBox.IsEnabled = mode == "openai";
+        _targetProviderBox.IsEnabled = mode == "migrate";
+    }
+
     private void OnThemeToggleClick(object? sender, RoutedEventArgs e) => ApplyTheme(!_isLightTheme);
+
+    private void ConfigureWindowChrome()
+    {
+        TitleBar.ExtendsContentIntoTitleBar = false;
+        TitleBar.TitleBarHitTestType = TitleBarHitTestType.Simple;
+        TitleBar.BackgroundColor = Colors.Transparent;
+        TitleBar.InactiveBackgroundColor = Colors.Transparent;
+        TitleBar.ButtonBackgroundColor = Colors.Transparent;
+        TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+        Opened += (_, _) => UpdateTitleBarColors(_isLightTheme);
+    }
 
     private void ApplyTheme(bool isLightTheme)
     {
         _isLightTheme = isLightTheme;
-        RequestedThemeVariant = isLightTheme ? ThemeVariant.Light : ThemeVariant.Dark;
-        _themeSunIcon.IsVisible = !isLightTheme;
-        _themeSunCircle.IsVisible = !isLightTheme;
-        _themeMoonIcon.IsVisible = isLightTheme;
+        var variant = isLightTheme ? ThemeVariant.Light : ThemeVariant.Dark;
+        RequestedThemeVariant = variant;
+        if (Application.Current != null)
+            Application.Current.RequestedThemeVariant = variant;
+
+        _themeToggleIcon.Symbol = isLightTheme ? Symbol.DarkTheme : Symbol.WeatherSunny;
+        _themeToggleLabel.Text = isLightTheme ? "深色模式" : "浅色模式";
         ToolTip.SetTip(_themeToggleBtn, isLightTheme ? "切换到深色模式" : "切换到浅色模式");
-
-        if (isLightTheme)
-        {
-            SetBrush("RootSurfaceBrush", "#EEF8FAFC");
-            SetBrush("CardSurfaceBrush", "#FDFEFF");
-            SetBrush("InsetSurfaceBrush", "#F4F7FA");
-            SetBrush("OutputSurfaceBrush", "#0D1726");
-            SetBrush("OutputInputBrush", "#09111F");
-            SetBrush("BorderBrushSoft", "#D6DEE8");
-            SetBrush("BorderBrushStrong", "#C4D0DE");
-            SetBrush("PrimaryTextBrush", "#101828");
-            SetBrush("SecondaryTextBrush", "#526173");
-            SetBrush("MutedTextBrush", "#667085");
-            SetBrush("OutputTextBrush", "#EEF4FF");
-            SetBrush("OutputMutedTextBrush", "#AFC3DF");
-            SetBrush("ButtonSurfaceBrush", "#EEF2F7");
-            SetBrush("ThemeButtonRestBrush", "#01000000");
-            SetBrush("ThemeButtonHoverBrush", "#120B1220");
-            SetBrush("ThemeButtonPressedBrush", "#1F3A86FF");
-        }
-        else
-        {
-            SetBrush("RootSurfaceBrush", "#E60B1220");
-            SetBrush("CardSurfaceBrush", "#C8121C2D");
-            SetBrush("InsetSurfaceBrush", "#111A2B");
-            SetBrush("OutputSurfaceBrush", "#0A1020");
-            SetBrush("OutputInputBrush", "#070C16");
-            SetBrush("BorderBrushSoft", "#2B3A52");
-            SetBrush("BorderBrushStrong", "#31435D");
-            SetBrush("PrimaryTextBrush", "#EEF4FF");
-            SetBrush("SecondaryTextBrush", "#B7C4D8");
-            SetBrush("MutedTextBrush", "#96A6BD");
-            SetBrush("OutputTextBrush", "#EEF4FF");
-            SetBrush("OutputMutedTextBrush", "#AFC3DF");
-            SetBrush("ButtonSurfaceBrush", "#18253A");
-            SetBrush("ThemeButtonRestBrush", "#01000000");
-            SetBrush("ThemeButtonHoverBrush", "#18FFFFFF");
-            SetBrush("ThemeButtonPressedBrush", "#263A86FF");
-        }
-
-        _outputBox.Foreground = Brush.Parse("#EEF4FF");
-        UpdatePillVisuals();
+        UpdateTitleBarColors(isLightTheme);
     }
 
-    private void SetBrush(string key, string color) => Resources[key] = new SolidColorBrush(Color.Parse(color));
+    private void UpdateTitleBarColors(bool isLightTheme)
+    {
+        var foreground = isLightTheme ? Colors.Black : Colors.White;
+        var hover = isLightTheme ? Color.FromArgb(28, 0, 0, 0) : Color.FromArgb(36, 255, 255, 255);
+        var pressed = isLightTheme ? Color.FromArgb(42, 0, 0, 0) : Color.FromArgb(50, 255, 255, 255);
+        var border = isLightTheme ? Color.Parse("#DADDE5") : Color.Parse("#263247");
+
+        TitleBar.ForegroundColor = foreground;
+        TitleBar.InactiveForegroundColor = foreground;
+        TitleBar.ButtonForegroundColor = foreground;
+        TitleBar.ButtonInactiveForegroundColor = foreground;
+        TitleBar.ButtonHoverForegroundColor = foreground;
+        TitleBar.ButtonPressedForegroundColor = foreground;
+        TitleBar.ButtonHoverBackgroundColor = hover;
+        TitleBar.ButtonPressedBackgroundColor = pressed;
+        PlatformFeatures?.SetWindowBorderColor(border);
+    }
+
+    private void SetStatus(string title, string message, InfoBarSeverity severity)
+    {
+        _statusInfoBar.Title = title;
+        _statusInfoBar.Message = message;
+        _statusInfoBar.Severity = severity;
+        _statusInfoBar.IsOpen = true;
+    }
 
     private void ResetDefaults()
     {
@@ -183,9 +153,10 @@ public partial class MainWindow : Window
 
     private async void OnApplyClick(object? sender, RoutedEventArgs e)
     {
-        if (_confirmCheck.IsChecked != true)
+        if (_confirmToggle.IsChecked != true)
         {
             _outputBox.Text = "执行写入前，请先勾选确认。";
+            SetStatus("需要确认", "开启写入确认后才能执行写入。", InfoBarSeverity.Warning);
             return;
         }
         await RunSyncAsync(true);
@@ -195,7 +166,7 @@ public partial class MainWindow : Window
     {
         SetBusy(true);
         _outputBox.Text = apply ? "正在执行写入..." : "正在预览...";
-        _statusLabel.Text = "运行中";
+        SetStatus("运行中", apply ? "正在执行写入..." : "正在预览...", InfoBarSeverity.Informational);
 
         var codexHome = _codexHomeBox.Text ?? "";
         if (string.IsNullOrWhiteSpace(codexHome)) codexHome = SyncEngine.DefaultCodexHome();
@@ -210,7 +181,7 @@ public partial class MainWindow : Window
 
         var sourceProvider = _sourceProviderBox.Text ?? "openai";
         var targetProvider = _targetProviderBox.Text ?? "openai";
-        var mode = _modeMutual.IsChecked == true ? "mutual" : _modeOpenAi.IsChecked == true ? "openai" : "migrate";
+        var mode = SelectedMode();
 
         var sb = new StringBuilder();
         try
@@ -383,12 +354,12 @@ public partial class MainWindow : Window
             });
 
             _outputBox.Text = sb.ToString();
-            _statusLabel.Text = "完成";
+            SetStatus("完成", apply ? "写入执行完成。" : "预览完成，尚未写入。", InfoBarSeverity.Success);
         }
         catch (Exception ex)
         {
             _outputBox.Text = $"Error: {ex.Message}\n{ex.StackTrace}";
-            _statusLabel.Text = "失败";
+            SetStatus("失败", ex.Message, InfoBarSeverity.Error);
         }
         finally
         {
@@ -401,8 +372,9 @@ public partial class MainWindow : Window
         _previewBtn.IsEnabled = !busy;
         _applyBtn.IsEnabled = !busy;
         _defaultsBtn.IsEnabled = !busy;
+        _modeBox.IsEnabled = !busy;
         if (busy)
-            _statusLabel.Text = "运行中";
+            SetStatus("运行中", "同步任务正在后台执行。", InfoBarSeverity.Informational);
     }
 
     static List<string> FormatCounts(Dictionary<string, int> counts)

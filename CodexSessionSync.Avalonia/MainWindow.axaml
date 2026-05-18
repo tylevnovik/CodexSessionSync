@@ -1,366 +1,205 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="CodexSessionSync.Avalonia.MainWindow"
-        Title="Codex 会话同步工具"
-        Width="1040" Height="780"
-        MinWidth="820" MinHeight="620"
-        TransparencyLevelHint="AcrylicBlur"
-        Background="Transparent">
+<wnd:AppWindow xmlns="https://github.com/avaloniaui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:ui="using:FluentAvalonia.UI.Controls"
+               xmlns:wnd="using:FluentAvalonia.UI.Windowing"
+               x:Class="CodexSessionSync.Avalonia.MainWindow"
+               Title="Codex 会话同步工具"
+               Width="1080"
+               Height="780"
+               MinWidth="860"
+               MinHeight="640"
+               TransparencyLevelHint="Mica"
+               TransparencyBackgroundFallback="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+               Background="Transparent">
 
-  <Window.Resources>
-    <SolidColorBrush x:Key="RootSurfaceBrush" Color="#E60B1220" />
-    <SolidColorBrush x:Key="CardSurfaceBrush" Color="#C8121C2D" />
-    <SolidColorBrush x:Key="InsetSurfaceBrush" Color="#111A2B" />
-    <SolidColorBrush x:Key="OutputSurfaceBrush" Color="#0A1020" />
-    <SolidColorBrush x:Key="OutputInputBrush" Color="#070C16" />
-    <SolidColorBrush x:Key="BorderBrushSoft" Color="#2B3A52" />
-    <SolidColorBrush x:Key="BorderBrushStrong" Color="#31435D" />
-    <SolidColorBrush x:Key="PrimaryTextBrush" Color="#EEF4FF" />
-    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#B7C4D8" />
-    <SolidColorBrush x:Key="MutedTextBrush" Color="#96A6BD" />
-    <SolidColorBrush x:Key="OutputTextBrush" Color="#EEF4FF" />
-    <SolidColorBrush x:Key="OutputMutedTextBrush" Color="#AFC3DF" />
-    <SolidColorBrush x:Key="ButtonSurfaceBrush" Color="#18253A" />
-    <SolidColorBrush x:Key="ThemeButtonRestBrush" Color="#01000000" />
-    <SolidColorBrush x:Key="ThemeButtonHoverBrush" Color="#18FFFFFF" />
-    <SolidColorBrush x:Key="ThemeButtonPressedBrush" Color="#263A86FF" />
-  </Window.Resources>
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+  <Grid Margin="28,22,28,28"
+        RowDefinitions="Auto,18,Auto,18,Auto,18,Auto"
+        MaxWidth="1100"
+        HorizontalAlignment="Stretch">
 
-  <Window.Styles>
-    <Style Selector="TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-    </Style>
-    <Style Selector="TextBox">
-      <Setter Property="CornerRadius" Value="6" />
-      <Setter Property="MinHeight" Value="36" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushStrong}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Background" Value="{DynamicResource InsetSurfaceBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-      <Setter Property="Padding" Value="10,6" />
-      <Setter Property="FontSize" Value="13" />
-    </Style>
-    <Style Selector="Button">
-      <Setter Property="CornerRadius" Value="6" />
-      <Setter Property="MinHeight" Value="36" />
-      <Setter Property="Padding" Value="18,6" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Background" Value="{DynamicResource ButtonSurfaceBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushStrong}" />
-      <Setter Property="BorderThickness" Value="1" />
-    </Style>
-    <Style Selector="Button.accent">
-      <Setter Property="Background" Value="#2568B6" />
-      <Setter Property="Foreground" Value="White" />
-      <Setter Property="BorderBrush" Value="#4C8DD4" />
-    </Style>
-    <Style Selector="Button.danger">
-      <Setter Property="Background" Value="#B43229" />
-      <Setter Property="Foreground" Value="White" />
-      <Setter Property="BorderBrush" Value="#DA6A61" />
-    </Style>
-    <Style Selector="Button.themeIcon">
-      <Setter Property="Width" Value="40" />
-      <Setter Property="Height" Value="40" />
-      <Setter Property="MinWidth" Value="40" />
-      <Setter Property="MinHeight" Value="40" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="CornerRadius" Value="20" />
-      <Setter Property="Background" Value="{DynamicResource ThemeButtonRestBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource ThemeButtonRestBrush}" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-      <Setter Property="Cursor" Value="Hand" />
-    </Style>
-    <Style Selector="Button.themeIcon:pointerover">
-      <Setter Property="Background" Value="{DynamicResource ThemeButtonHoverBrush}" />
-    </Style>
-    <Style Selector="Button.themeIcon:pressed">
-      <Setter Property="Background" Value="{DynamicResource ThemeButtonPressedBrush}" />
-    </Style>
-    <Style Selector="CheckBox">
-      <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-      <Setter Property="FontSize" Value="13" />
-    </Style>
-  </Window.Styles>
+    <Grid Grid.Row="0"
+          ColumnDefinitions="*,Auto"
+          MinHeight="64">
+      <StackPanel Grid.Column="0"
+                  Spacing="4"
+                  VerticalAlignment="Center">
+        <TextBlock Text="Codex 会话同步工具"
+                   FontSize="30"
+                   FontWeight="SemiBold" />
+        <TextBlock Text="先预览计划，确认后再允许写入 JSONL 和 SQLite。"
+                   Foreground="{DynamicResource SystemControlPageTextBaseMediumBrush}"
+                   TextWrapping="Wrap" />
+      </StackPanel>
 
-  <Panel>
-    <ExperimentalAcrylicBorder IsHitTestVisible="False">
-      <ExperimentalAcrylicBorder.Material>
-        <ExperimentalAcrylicMaterial
-          TintColor="#0B1220"
-          TintOpacity="0.78"
-          FallbackColor="#0B1220" />
-      </ExperimentalAcrylicBorder.Material>
-    </ExperimentalAcrylicBorder>
+      <Button x:Name="ThemeToggleBtn"
+              Grid.Column="1"
+              VerticalAlignment="Top"
+              Padding="12,6"
+              ToolTip.Tip="切换到浅色模式">
+        <StackPanel Orientation="Horizontal"
+                    Spacing="8">
+          <ui:SymbolIcon x:Name="ThemeToggleIcon"
+                         Symbol="WeatherSunny"
+                         FontSize="16" />
+          <TextBlock x:Name="ThemeToggleLabel"
+                     Text="浅色模式" />
+        </StackPanel>
+      </Button>
+    </Grid>
 
-    <Border Margin="18"
-            CornerRadius="10"
-            Background="{DynamicResource RootSurfaceBrush}"
-            BorderBrush="{DynamicResource BorderBrushSoft}"
-            BorderThickness="1"
-            BoxShadow="0 20 48 0 #66000000"
-            ClipToBounds="True">
-      <Grid Margin="24" RowDefinitions="Auto,16,Auto,16,Auto,16,*">
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
-          <StackPanel Grid.Column="0" Spacing="4">
-            <TextBlock Text="Codex 会话同步工具"
-                       FontSize="26"
-                       FontWeight="SemiBold" />
-            <TextBlock Text="默认预览，不会写入；勾选确认后点击执行写入才会修改文件和 SQLite。"
-                       FontSize="13"
-                       Foreground="{DynamicResource SecondaryTextBrush}"
-                       TextWrapping="Wrap" />
-          </StackPanel>
+    <ui:InfoBar x:Name="StatusInfoBar"
+                Grid.Row="2"
+                Title="准备就绪"
+                Message="默认只预览，不会写入；开启写入确认后再执行。"
+                Severity="Informational"
+                IsOpen="True"
+                IsClosable="False" />
 
-          <Button x:Name="ThemeToggleBtn"
-                  Grid.Column="1"
-                  Classes="themeIcon"
-                  Margin="0,0,12,0"
-                  Focusable="False"
-                  VerticalAlignment="Center"
-                  ToolTip.Tip="切换到浅色模式">
-            <Canvas Width="20"
-                    Height="20"
-                    HorizontalAlignment="Center"
+    <ui:SettingsExpander Grid.Row="4"
+                         Header="同步设置"
+                         Description="路径、模式、provider 和写入确认。"
+                         IconSource="Sync"
+                         IsExpanded="True">
+      <ui:SettingsExpanderItem Content="Codex Home"
+                               Description="默认读取 CODEX_HOME，未设置时使用当前用户的 .codex。"
+                               IconSource="Home">
+        <ui:SettingsExpanderItem.Footer>
+          <TextBox x:Name="CodexHomeBox"
+                   Width="520"
+                   Watermark="Codex Home" />
+        </ui:SettingsExpanderItem.Footer>
+      </ui:SettingsExpanderItem>
+
+      <ui:SettingsExpanderItem Content="备份目录"
+                               Description="执行写入时建议保留，用来备份 SQLite 和被改动的 JSONL。"
+                               IconSource="SaveLocal">
+        <ui:SettingsExpanderItem.Footer>
+          <TextBox x:Name="BackupDirBox"
+                   Width="520"
+                   Watermark="备份目录" />
+        </ui:SettingsExpanderItem.Footer>
+      </ui:SettingsExpanderItem>
+
+      <ui:SettingsExpanderItem Content="同步模式"
+                               Description="全供应商互同步、指定源同步到全部，或迁移到单一目标。"
+                               IconSource="ViewAll">
+        <ui:SettingsExpanderItem.Footer>
+          <ui:FAComboBox x:Name="ModeBox"
+                         Width="300"
+                         SelectedIndex="0">
+            <ui:FAComboBoxItem Content="全供应商互同步" />
+            <ui:FAComboBoxItem Content="OpenAI 同步到全部" />
+            <ui:FAComboBoxItem Content="单目标迁移" />
+          </ui:FAComboBox>
+        </ui:SettingsExpanderItem.Footer>
+      </ui:SettingsExpanderItem>
+
+      <ui:SettingsExpanderItem Content="源 provider"
+                               Description="仅在 OpenAI 同步到全部模式中使用，默认 openai。"
+                               IconSource="Cloud">
+        <ui:SettingsExpanderItem.Footer>
+          <TextBox x:Name="SourceProviderBox"
+                   Width="300"
+                   Text="openai" />
+        </ui:SettingsExpanderItem.Footer>
+      </ui:SettingsExpanderItem>
+
+      <ui:SettingsExpanderItem Content="目标 provider"
+                               Description="用于单目标迁移模式，默认 openai。"
+                               IconSource="ImportAll">
+        <ui:SettingsExpanderItem.Footer>
+          <TextBox x:Name="TargetProviderBox"
+                   Width="300"
+                   Text="openai" />
+        </ui:SettingsExpanderItem.Footer>
+      </ui:SettingsExpanderItem>
+
+      <ui:SettingsExpanderItem Content="写入确认"
+                               Description="关闭时所有执行都保持预览；开启后才允许点击执行写入。"
+                               IconSource="ProtectedDocument">
+        <ui:SettingsExpanderItem.Footer>
+          <ToggleSwitch x:Name="ConfirmToggle"
+                        OffContent="仅预览"
+                        OnContent="允许写入" />
+        </ui:SettingsExpanderItem.Footer>
+      </ui:SettingsExpanderItem>
+    </ui:SettingsExpander>
+
+    <Grid Grid.Row="6"
+          RowDefinitions="Auto,12,*">
+      <Grid Grid.Row="0"
+            ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0"
+                    Orientation="Horizontal"
+                    Spacing="12"
                     VerticalAlignment="Center">
-              <Path x:Name="ThemeSunIcon"
-                    Data="M10,3.2 L10,1.2 M10,18.8 L10,16.8 M3.2,10 L1.2,10 M18.8,10 L16.8,10 M5.2,5.2 L3.8,3.8 M16.2,16.2 L14.8,14.8 M14.8,5.2 L16.2,3.8 M3.8,16.2 L5.2,14.8"
-                    Stroke="{DynamicResource PrimaryTextBrush}"
-                    StrokeThickness="1.9"
-                    StrokeLineCap="Round"
-                    StrokeJoin="Round" />
-              <Ellipse x:Name="ThemeSunCircle"
-                       Width="7"
-                       Height="7"
-                       Canvas.Left="6.5"
-                       Canvas.Top="6.5"
-                       Stroke="{DynamicResource PrimaryTextBrush}"
-                       StrokeThickness="1.9" />
-              <Path x:Name="ThemeMoonIcon"
-                    Data="M16.6,12.7 C15.2,15 12.5,16.3 9.7,15.9 C6.3,15.4 3.7,12.6 3.4,9.2 C3.2,6.4 4.6,3.9 6.9,2.5 C6.4,3.8 6.4,5.2 6.9,6.5 C7.7,8.9 9.7,10.9 12.2,11.7 C13.7,12.1 15.3,12 16.6,11.3 C16.7,11.8 16.7,12.3 16.6,12.7 Z"
-                    Fill="{DynamicResource PrimaryTextBrush}"
-                    IsVisible="False" />
-            </Canvas>
+          <ui:SymbolIcon Symbol="Document"
+                         FontSize="22" />
+          <StackPanel Spacing="2">
+            <TextBlock Text="运行输出"
+                       FontSize="17"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="报告会区分需创建、已存在、过期跳过和冲突。"
+                       Foreground="{DynamicResource SystemControlPageTextBaseMediumBrush}" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    VerticalAlignment="Center">
+          <Button x:Name="PreviewBtn"
+                  MinWidth="116"
+                  Padding="16,8">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8">
+              <ui:SymbolIcon Symbol="Preview"
+                             FontSize="16" />
+              <TextBlock Text="预览" />
+            </StackPanel>
           </Button>
 
-          <Border Grid.Column="2"
-                  Background="{DynamicResource InsetSurfaceBrush}"
-                  BorderBrush="{DynamicResource BorderBrushStrong}"
-                  BorderThickness="1"
-                  CornerRadius="4"
-                  Padding="14,8"
+          <Button x:Name="ApplyBtn"
+                  Classes="accent"
+                  MinWidth="132"
+                  Padding="16,8">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8">
+              <ui:SymbolIcon Symbol="Important"
+                             FontSize="16" />
+              <TextBlock Text="执行写入" />
+            </StackPanel>
+          </Button>
+
+          <Button x:Name="DefaultsBtn"
                   MinWidth="124"
-                  VerticalAlignment="Center">
-            <TextBlock x:Name="StatusLabel"
-                       Text="准备就绪"
-                       FontSize="13"
-                       FontWeight="SemiBold"
-                       HorizontalAlignment="Center" />
-          </Border>
-        </Grid>
-
-        <Border Grid.Row="2"
-                Background="{DynamicResource CardSurfaceBrush}"
-                BorderBrush="{DynamicResource BorderBrushSoft}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="18">
-          <Grid ColumnDefinitions="*,16,*">
-            <StackPanel Grid.Column="0" Spacing="6">
-              <TextBlock Text="Codex Home"
-                         FontSize="13"
-                         FontWeight="SemiBold" />
-              <TextBox x:Name="CodexHomeBox" />
-              <TextBlock Text="默认读取 CODEX_HOME 或当前用户的 .codex。"
-                         FontSize="12"
-                         Foreground="{DynamicResource MutedTextBrush}"
-                         TextWrapping="Wrap" />
+                  Padding="16,8">
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8">
+              <ui:SymbolIcon Symbol="Refresh"
+                             FontSize="16" />
+              <TextBlock Text="默认路径" />
             </StackPanel>
-
-            <StackPanel Grid.Column="2" Spacing="6">
-              <TextBlock Text="备份目录"
-                         FontSize="13"
-                         FontWeight="SemiBold" />
-              <TextBox x:Name="BackupDirBox" />
-              <TextBlock Text="执行写入时建议填写，例如桌面上的 codex-backup。"
-                         FontSize="12"
-                         Foreground="{DynamicResource MutedTextBrush}"
-                         TextWrapping="Wrap" />
-            </StackPanel>
-          </Grid>
-        </Border>
-
-        <Border Grid.Row="4"
-                Background="{DynamicResource CardSurfaceBrush}"
-                BorderBrush="{DynamicResource BorderBrushSoft}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="18">
-          <Grid RowDefinitions="Auto,16,Auto,16,Auto">
-            <StackPanel Grid.Row="0" Spacing="10">
-              <TextBlock Text="同步模式"
-                         FontSize="13"
-                         FontWeight="SemiBold" />
-
-              <Grid ColumnDefinitions="*,10,*,10,*">
-                <Border Name="PillMutual"
-                        Grid.Column="0"
-                        Background="#203A5F"
-                        BorderBrush="#4C8DD4"
-                        BorderThickness="1"
-                        CornerRadius="7"
-                        Padding="12"
-                        Cursor="Hand">
-                  <StackPanel Spacing="4">
-                    <TextBlock Text="全供应商互同步"
-                               FontSize="14"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="配置中的每个 provider 最终看到同一批会话。"
-                               FontSize="12"
-                               Foreground="{DynamicResource SecondaryTextBrush}"
-                               TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-
-                <Border Name="PillOpenAi"
-                        Grid.Column="2"
-                        Background="#111A2B"
-                        BorderBrush="#31435D"
-                        BorderThickness="1"
-                        CornerRadius="7"
-                        Padding="12"
-                        Cursor="Hand">
-                  <StackPanel Spacing="4">
-                    <TextBlock Text="OpenAI 同步到全部"
-                               FontSize="14"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="以 source provider 为源，给其它 provider 创建镜像。"
-                               FontSize="12"
-                               Foreground="{DynamicResource SecondaryTextBrush}"
-                               TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-
-                <Border Name="PillMigrate"
-                        Grid.Column="4"
-                        Background="#111A2B"
-                        BorderBrush="#31435D"
-                        BorderThickness="1"
-                        CornerRadius="7"
-                        Padding="12"
-                        Cursor="Hand">
-                  <StackPanel Spacing="4">
-                    <TextBlock Text="单目标迁移"
-                               FontSize="14"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="把非保留 provider 的历史会话迁移到目标 provider。"
-                               FontSize="12"
-                               Foreground="{DynamicResource SecondaryTextBrush}"
-                               TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-              </Grid>
-
-              <RadioButton x:Name="ModeMutual" GroupName="Mode" IsChecked="True" IsVisible="False" />
-              <RadioButton x:Name="ModeOpenAi" GroupName="Mode" IsVisible="False" />
-              <RadioButton x:Name="ModeMigrate" GroupName="Mode" IsVisible="False" />
-            </StackPanel>
-
-            <Grid Grid.Row="2" ColumnDefinitions="*,16,*">
-              <StackPanel Grid.Column="0" Spacing="6">
-                <TextBlock Text="源 provider"
-                           FontSize="13"
-                           FontWeight="SemiBold" />
-                <TextBox x:Name="SourceProviderBox" Text="openai" />
-              </StackPanel>
-
-              <StackPanel Grid.Column="2" Spacing="6">
-                <TextBlock Text="目标 provider"
-                           FontSize="13"
-                           FontWeight="SemiBold" />
-                <TextBox x:Name="TargetProviderBox" Text="openai" />
-              </StackPanel>
-            </Grid>
-
-            <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,Auto,*,Auto">
-              <Button x:Name="PreviewBtn"
-                      Grid.Column="0"
-                      Content="预览"
-                      Classes="accent"
-                      Margin="0,0,10,0" />
-              <Button x:Name="ApplyBtn"
-                      Grid.Column="1"
-                      Content="执行写入"
-                      Classes="danger"
-                      Margin="0,0,10,0" />
-              <Button x:Name="DefaultsBtn"
-                      Grid.Column="2"
-                      Content="恢复默认路径"
-                      Margin="0,0,10,0" />
-              <CheckBox x:Name="ConfirmCheck"
-                        Grid.Column="4"
-                        Content="我已备份或确认可以写入"
-                        VerticalAlignment="Center" />
-            </Grid>
-          </Grid>
-        </Border>
-
-        <Border Grid.Row="6"
-                Background="{DynamicResource OutputSurfaceBrush}"
-                BorderBrush="{DynamicResource BorderBrushSoft}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="16"
-                MinHeight="120"
-                VerticalAlignment="Stretch">
-          <Grid RowDefinitions="Auto,10,*">
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-              <StackPanel Grid.Column="0" Spacing="2">
-                <TextBlock Text="运行输出"
-                           FontSize="13"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource OutputTextBrush}" />
-                <TextBlock Text="报告会区分需创建、已存在、过期跳过和冲突。"
-                           FontSize="12"
-                           Foreground="{DynamicResource OutputMutedTextBrush}"
-                           TextWrapping="Wrap" />
-              </StackPanel>
-              <Border Grid.Column="1"
-                      Background="{DynamicResource InsetSurfaceBrush}"
-                      CornerRadius="999"
-                      Padding="10,5"
-                      VerticalAlignment="Center">
-                <TextBlock Text="LOG"
-                           FontSize="11"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource OutputMutedTextBrush}" />
-              </Border>
-            </Grid>
-
-            <TextBox Grid.Row="2"
-                     x:Name="OutputBox"
-                     MinHeight="0"
-                     Background="{DynamicResource OutputInputBrush}"
-                     Foreground="{DynamicResource OutputTextBrush}"
-                     FontFamily="Cascadia Code,Consolas,monospace"
-                     FontSize="13"
-                     BorderBrush="{DynamicResource BorderBrushSoft}"
-                     BorderThickness="1"
-                     CornerRadius="6"
-                     IsReadOnly="True"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     VerticalAlignment="Stretch"
-                     HorizontalAlignment="Stretch"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     Text="等待运行。" />
-          </Grid>
-        </Border>
+          </Button>
+        </StackPanel>
       </Grid>
-    </Border>
-  </Panel>
-</Window>
+
+      <TextBox x:Name="OutputBox"
+               Grid.Row="2"
+               MinHeight="220"
+               FontFamily="Cascadia Code, Consolas, monospace"
+               FontSize="13"
+               IsReadOnly="True"
+               TextWrapping="Wrap"
+               AcceptsReturn="True"
+               VerticalAlignment="Stretch"
+               HorizontalAlignment="Stretch"
+               ScrollViewer.VerticalScrollBarVisibility="Auto"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+               Text="等待运行。" />
+    </Grid>
+  </Grid>
+  </ScrollViewer>
+</wnd:AppWindow>

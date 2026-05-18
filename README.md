@@ -12,7 +12,7 @@ Codex Session Sync 是一个本地会话同步工具，用来把 OpenAI Codex / 
 |------|----------|----------|------|
 | MewUI | 想要最小、最快启动的 Native AOT GUI | `CodexSessionSync.MewUI-aot.zip` | Aprillz.MewUI + Direct2D，纯 C# Markup，无 XAML，按 full trim 发布。 |
 | WinUI 3 | 想要最接近 Windows 11 的原生体验 | `CodexSessionSync.WinUI-aot.zip` | Windows App SDK + Acrylic + 深浅色切换。必须完整解压后运行，不是单 exe。 |
-| Avalonia | 想要接近 WinUI 3 的现代界面和较小 AOT 包 | `CodexSessionSync.Avalonia-aot.zip` | Acrylic 背景、深浅色切换、WinUI-like 卡片布局、pill 模式选择器。Windows x64 self-contained Native AOT，需保留 zip 内 native DLL。 |
+| Avalonia | 想要接近 WinUI 3 的现代界面和较小 AOT 包 | `CodexSessionSync.Avalonia-aot.zip` | 基于 FluentAvalonia 的 AppWindow、InfoBar、SettingsExpander、FAComboBox 和 Fluent 风格按钮，并使用 Mica 背景。Windows x64 self-contained Native AOT，需保留 zip 内 native DLL。 |
 | WinForms | 想要最朴素、直接、兼容性好的 GUI | `CodexSessionSync.WinForms-aot.zip` | 紧凑管理工具窗，self-contained AOT，需保留 zip 内 SQLite native DLL。 |
 | WPF iNKORE | 想试 iNKORE.UI.WPF.Modern 的 Fluent 2 控件 | `CodexSessionSync.Wpf.Inkore.exe` | Mica 窗口、InfoBar、SettingsCard、AppBarButton，self-contained 单文件。 |
 | WPF UI | 想试 lepoco/WPF UI 的 Fluent 控件 | `CodexSessionSync.Wpf.WpfUi.exe` | FluentWindow、TitleBar、Card、InfoBar、ToggleSwitch，self-contained 单文件。 |
@@ -46,7 +46,7 @@ WinUI 3 是最偏“原生 Windows 应用”的版本。它使用 Windows App SD
 
 ### Avalonia
 
-Avalonia 版本现在按 WinUI 3 的信息结构重做：顶部标题和状态、路径卡片、模式卡片、操作区、独立滚动的运行输出区都在同一套 Fluent/Acrylic 视觉里，并支持深浅色切换。它有跨平台潜力，但当前 release 只发布 Windows x64 self-contained Native AOT。
+Avalonia 版本现在使用 `amwx/FluentAvalonia` 重构：应用主题由 `FluentAvaloniaTheme` 接管，主界面使用 `AppWindow`、`InfoBar`、`SettingsExpander`、`FAComboBox` 和 Fluent 风格按钮组织，并使用 Mica 背景和顶部深浅色切换。它有跨平台潜力，但当前 release 只发布 Windows x64 self-contained Native AOT。
 
 如果想要“现代一点、文件又比 WPF 小”的 GUI，优先选 Avalonia。
 
